@@ -202,8 +202,12 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 
 HOSTCC  	= gcc
 HOSTCXX  	= g++
+#HOSTCFLAGS	= -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer
 HOSTCFLAGS	= -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer
+#HOSTCFLAGS	= -Wall -Wstrict-prototypes -O0 -fomit-frame-pointer
+#HOSTCXXFLAGS	= -O2
 HOSTCXXFLAGS	= -O2
+#HOSTCXXFLAGS	= -O0
 
 # 	Decide whether to build built-in, modular, or both.
 #	Normally, just do built-in.
@@ -351,7 +355,7 @@ CPPFLAGS        := -D__KERNEL__ $(LINUXINCLUDE)
 
 CFLAGS 		:= -Wall -Wstrict-prototypes -Wno-trigraphs \
 	  	   -fno-strict-aliasing -fno-common \
-		   -ffreestanding
+		   -ffreestanding -fno-stack-protector
 AFLAGS		:= -D__ASSEMBLY__
 
 export	VERSION PATCHLEVEL SUBLEVEL EXTRAVERSION LOCALVERSION KERNELRELEASE \
@@ -505,12 +509,14 @@ endif
 # Defaults vmlinux but it is usually overriden in the arch makefile
 all: vmlinux
 
-ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
-CFLAGS		+= -Os
-else
-CFLAGS		+= -O2
-endif
+#ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+#CFLAGS		+= -Os
+#else
+#CFLAGS		+= -O2
+#CFLAGS		+= -O0
+#endif
 
+CFLAGS		+= -O1
 #Add align options if CONFIG_CC_* is not equal to 0
 add-align = $(if $(filter-out 0,$($(1))),$(cc-option-align)$(2)=$($(1)))
 CFLAGS		+= $(call add-align,CONFIG_CC_ALIGN_FUNCTIONS,-functions)
