@@ -63,6 +63,9 @@ char core_pattern[65] = "core";
 static struct linux_binfmt *formats;
 static DEFINE_RWLOCK(binfmt_lock);
 
+/*
+ * 把fmt插入到formats头节点的链表中。
+ */
 int register_binfmt(struct linux_binfmt * fmt)
 {
 	struct linux_binfmt ** tmp = &formats;
@@ -72,6 +75,10 @@ int register_binfmt(struct linux_binfmt * fmt)
 	if (fmt->next)
 		return -EBUSY;
 	write_lock(&binfmt_lock);
+/*
+ * 通过fmt->next = formats，实现了把fmt插入链表的头部。
+ * formats = fmt，formats又指向了链表头部。
+ */
 	while (*tmp) {
 		if (fmt == *tmp) {
 			write_unlock(&binfmt_lock);
@@ -197,6 +204,10 @@ static int count(char __user * __user * argv, int max)
  * memory to free pages in kernel mem. These are in a format ready
  * to be put directly into the top of new user memory.
  */
+/*
+ * 把用户内存参数/环境变量字符串拷贝到内核内存中，主要是保存到
+ * linux_binprm结构体中的page[i]成员中。
+ */
 int copy_strings(int argc,char __user * __user * argv, struct linux_binprm *bprm)
 {
 	struct page *kmapped_page = NULL;
@@ -219,6 +230,11 @@ int copy_strings(int argc,char __user * __user * argv, struct linux_binprm *bprm
 			goto out;
 		}
 
+/*
+ * bprm->p在do_execve中初始化为PAGE_SIZE*MAX_ARG_PAGES-sizeof(void *),
+ * 指向MAX_ARG_PAGES页的最高地址,也就是bprm还可以拷贝字节数。
+ * 如果需要拷贝len给字节，则可以bprm->pos-len处拷贝。
+ */
 		bprm->p -= len;
 		/* XXX: add architecture specific overflow check here. */
 		pos = bprm->p;
@@ -232,6 +248,9 @@ int copy_strings(int argc,char __user * __user * argv, struct linux_binprm *bprm
 			i = pos/PAGE_SIZE;
 			page = bprm->page[i];
 			new = 0;
+/*
+ * 通过alloc_page分配page，并保存到bprm->page[i]中。
+ */
 			if (!page) {
 				page = alloc_page(GFP_HIGHUSER);
 				bprm->page[i] = page;
@@ -257,6 +276,10 @@ int copy_strings(int argc,char __user * __user * argv, struct linux_binprm *bprm
 					memset(kaddr+offset+len, 0,
 						PAGE_SIZE-offset-len);
 			}
+/*
+ * 把用户空间字符串通过,copy_from_user拷贝到kddr+offset中
+ * 也就是bprm->page[i]对应的内存中
+ */
 			err = copy_from_user(kaddr+offset, str, bytes_to_copy);
 			if (err) {
 				ret = -EFAULT;
@@ -1071,6 +1094,24 @@ int search_binary_handler(struct linux_binprm *bprm,struct pt_regs *regs)
 	for (try=0; try<2; try++) {
 		read_lock(&binfmt_lock);
 		for (fmt = formats ; fmt ; fmt = fmt->next) {
+			/*
+			 * 在i386的qemu实验中，formats中有两个节点：
+			 * 节点0的结构体变量如下:
+			 * static struct linux_binfmt elf_format = {
+			 * .module              = THIS_MODULE,
+			 * .load_binary = load_elf_binary,
+			 * .load_shlib  = load_elf_library,
+			 * .core_dump   = elf_core_dump,
+			 * .min_coredump        = ELF_EXEC_PAGESIZE
+			 * };
+			 * 节点1的结构体变量如下:
+			 *static struct linux_binfmt script_format = {
+			 *	.module		= THIS_MODULE,
+			 *	.load_binary	= load_script,
+			 *};
+			 *  可以看出，节点0中，有load_binary函数。
+			 */
+
 			int (*fn)(struct linux_binprm *, struct pt_regs *) = fmt->load_binary;
 			if (!fn)
 				continue;
@@ -1141,12 +1182,13 @@ int do_execve(char * filename,
 		goto out_kfree;
 
 	sched_exec();
-
+    /* 1024*32减去一个指针大小，指向bprm可分配页的字节数 */
 	bprm->p = PAGE_SIZE*MAX_ARG_PAGES-sizeof(void *);
 
 	bprm->file = file;
 	bprm->filename = filename;
 	bprm->interp = filename;
+    /* 分配一个进程 */
 	bprm->mm = mm_alloc();
 	retval = -ENOMEM;
 	if (!bprm->mm)
