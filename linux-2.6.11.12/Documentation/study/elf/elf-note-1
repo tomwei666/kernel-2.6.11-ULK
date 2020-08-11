@@ -1,0 +1,60 @@
+
+1. Section
+   一般目标文件将这些信息按照不同的属性，以“节”(Section)的形式存储;也就是节,是一个长度的区域，里面有相同属性的信息。
+
+
+
+
+
+
+
+
+
+1. Segment和Section区别？
+   从链接的角度看，ELF文件是按Section存储的；从装载的角度看，ELF文件是按照Segment1. Segment
+
+
+
+
+
+
+2. Program Header Table
+   ELF可执行文件中有一个专门的数据结构叫程序头表(Program Header Table),用来保存“Segment"的信息。程序表头也是一个结构体数组，定义如下：
+   ELF可执行文件被设计得很容易加载到内存，可执行文件的连续的片ELF(chunk)被映射到连续的内存段。程序头部表(Program header table)描述这种关系。
+
+   站在操作系统装载可执行文件的角度看问题，可以发现它实际上并不关心。
+
+
+   typedef struct elf32_phdr{
+	   Elf32_Word	p_type;
+	   Elf32_Off	p_offset;
+	   Elf32_Addr	p_vaddr;
+	   Elf32_Addr	p_paddr;
+	   Elf32_Word	p_filesz;
+	   Elf32_Word	p_memsz;
+	   Elf32_Word	p_flags;
+	   Elf32_Word	p_align;
+   } Elf32_Phdr;
+
+
+3. 
+
+
+
+
+参考：
+1
+
+
+参考：
+1
+
+
+参考：
+1
+
+
+参考：
+1. 深入理解计算机系统----第7张 链接
+2. 深入理解Android JAVA虚拟机ART
+3. 
