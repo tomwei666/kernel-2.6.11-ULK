@@ -1,0 +1,411 @@
+
+1. Section的定义
+   一般目标文件将这些信息按照不同的属性，以“节”(Section)的形式存储;也就是节,是一个长度的区域，里面有相同属性的信息。
+
+	readelf -h读出的ELF的头文件关于Section program table的内容
+
+	Start of section headers:          3340 (bytes into file)            --->e_shoff = 0xD0C=3340
+	Size of section headers:           40 (bytes)                        --->e_shnum=0x28=40
+	Number of section headers:         34                                --->e_shnum=0x22=34
+
+	第1个section是0xD0C--0xD0C+39=0xD33
+
+	1.1 第0节
+	名称：
+	地址: 0xD0C----0xD33(0xD0C+39)
+	内容：
+	00000d00  00 2e 64 65 62 75 67 5f  73 74 72 00 00 00 00 00  |..debug_str.....|
+	00000d10  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+	*
+	00000d30  00 00 00 00 1b 00 00 00  01 00 00 00 02 00 00 00  |................|
+	可以看出第0个Section是NULL
+	解析信息如下:
+	[ 0]                   NULL            00000000 000000 000000 00      0   0  0
+
+	1.2 第1节: .interp
+	名称：.interp
+	地址: 0xD34----0xD5B(0xD34+39)
+	内容：
+	00000d30  00 00 00 00 1b 00 00 00  01 00 00 00 02 00 00 00  |................|
+	00000d40  14 81 04 08 14 01 00 00  13 00 00 00 00 00 00 00  |................|
+	00000d50  00 00 00 00 01 00 00 00  00 00 00 00 23 00 00 00  |............#...|
+	可以看出第0个Section是NULL
+	解析信息如下:
+    [ 1] .interp           PROGBITS        08048114 000114 000013 00   A  0   0  1
+
+	1.3 第2节:
+	[ 2] .note.ABI-tag     NOTE            08048128 000128 000020 00   A  0   0  4
+    name： .note.ABI-tag
+	Addr:  0x128-0x147
+	Contents:
+	00000120  78 2e 73 6f 2e 32 00 00  04 00 00 00 10 00 00 00  |x.so.2..........|
+	00000130  01 00 00 00 47 4e 55 00  00 00 00 00 02 00 00 00  |....GNU.........|
+	00000140  06 00 00 00 00 00 00 00  03 00 00 00 05 00 00 00  |................|
+	作用：不知道，猜测是GNU ABI的tag.
+
+	1.4 第3节:
+	[ 3] .hash             HASH            08048148 000148 000028 04   A  4   0  4
+    name： .hash
+	Addr:  0x148-0x16F
+	Contents:
+	00000140  06 00 00 00 00 00 00 00  03 00 00 00 05 00 00 00  |................|
+	00000150  04 00 00 00 01 00 00 00  03 00 00 00 00 00 00 00  |................|
+	00000160  00 00 00 00 00 00 00 00  02 00 00 00 00 00 00 00  |................|
+	作用：包含符号hash表。
+
+	1.5 第4节:
+    [ 4] .dynsym           DYNSYM          08048170 000170 000050 10   A  5   1  4
+    name： .hash
+	Addr:  0x148-0x16F
+	Contents:
+	00000140  06 00 00 00 00 00 00 00  03 00 00 00 05 00 00 00  |................|
+	00000150  04 00 00 00 01 00 00 00  03 00 00 00 00 00 00 00  |................|
+	00000160  00 00 00 00 00 00 00 00  02 00 00 00 00 00 00 00  |................|
+	作用：包含符号hash表。
+
+	1.6 第5节:
+	[ 5] .dynstr           STRTAB          080481c0 0001c0 00004c 00   A  0   0  1
+	Addr:  0x1c0-0x20B
+	Contents:
+	000001c0  00 5f 5f 67 6d 6f 6e 5f  73 74 61 72 74 5f 5f 00  |.__gmon_start__.|
+	000001d0  6c 69 62 63 2e 73 6f 2e  36 00 70 72 69 6e 74 66  |libc.so.6.printf|
+	000001e0  00 5f 49 4f 5f 73 74 64  69 6e 5f 75 73 65 64 00  |._IO_stdin_used.|
+	000001f0  5f 5f 6c 69 62 63 5f 73  74 61 72 74 5f 6d 61 69  |__libc_start_mai|
+	00000200  6e 00 47 4c 49 42 43 5f  32 2e 30 00 00 00 02 00  |n.GLIBC_2.0.....|
+	作用：
+	包含了动态链接用的字符串，通常是和符号表的符号关联的字符串。
+
+	1.6 第6节:
+	[ 5] .dynstr           STRTAB          080481c0 0001c0 00004c 00   A  0   0  1
+	Addr:  0x1c0-0x20B
+	Contents:
+	000001c0  00 5f 5f 67 6d 6f 6e 5f  73 74 61 72 74 5f 5f 00  |.__gmon_start__.|
+	000001d0  6c 69 62 63 2e 73 6f 2e  36 00 70 72 69 6e 74 66  |libc.so.6.printf|
+	000001e0  00 5f 49 4f 5f 73 74 64  69 6e 5f 75 73 65 64 00  |._IO_stdin_used.|
+	000001f0  5f 5f 6c 69 62 63 5f 73  74 61 72 74 5f 6d 61 69  |__libc_start_mai|
+	00000200  6e 00 47 4c 49 42 43 5f  32 2e 30 00 00 00 02 00  |n.GLIBC_2.0.....|
+	作用：
+	包含了动态链接用的字符串，通常是和符号表的符号关联的字符串。
+
+	....
+
+
+	1.7 第23节
+	[23] .bss              NOBITS          08049590 000590 00000c 00  WA  0   0  4
+	内容
+    00000590  00 47 43 43 3a 20 28 47  4e 55 29 20 34 2e 31 2e  |.GCC: (GNU) 4.1.|
+	说明：bss的未初始化内容，所以内容是内存无意义内容。
+	作用：
+	.bss段存放的是未初始化的全局变量和未初始化的局部静态变量。
+	objdump -x -s -d simpleSection打印信息如下:
+	22 .bss          0000000c
+	08049594 l     O .bss   00000004              static_var2.1785
+	08049598 g     O .bss   00000004              global_uninit_var
+	08049590 l     O .bss   00000001              completed.5761
+	可以看出.bss存放的是全局未初始化的global_uninit_var和未初始化的局部静态变量static_var2,还有completed变量大小为1个字节，
+	对齐后，则一共是12个字节。
+	global_uninit_var和static_var2是simpleSection.c中的，completed可能是库文件中的。
+
+	1.8 第22节
+	name: .data
+	[22] .data             PROGBITS        0804957c 00057c 000014 00  WA  0   0  4
+
+	Addr:  0x57C-0x58F
+	Contents:
+	00000570  86 82 04 08 96 82 04 08  a6 82 04 08 00 00 00 00  |................|
+	00000580  00 00 00 00 90 94 04 08  54 00 00 00 55 00 00 00  |........T...U...|
+
+	作用：
+   .data包含初始化的全局变量和初始化的局部静态变量。
+   data大小是0x14=20个字节，从内容看到5个字节，最后两个是0x54=84和0x55=85。
+
+   .data包含变量：
+   0804958c l     O .data  00000004              static_var.1784
+   08049588 g     O .data  00000004              global_init_var
+
+   1.9 第14节
+   name: .rodata
+   [14] .rodata           PROGBITS        08048474 000474 00000c 00   A  0   0  4
+   Addr: 0x474-0x47F
+   Contents:
+   00000470  59 5b c9 c3 03 00 00 00  01 00 02 00 25 64 0a 00  |Y[..........%d..|
+   .rodata段存放的是只读数据，一般是程序里面的只读变量(如const修饰的变量)和字符串常量。
+   示例程序在调用"printf"的时候，用到了一个字符串常量"%d\n"，它是一种只读数据，所以它被放到".rodata"段。
+
+
+
+
+附1:
+readelf -S simpleSection的信息如下:
+
+Section Headers:
+[Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
+[ 0]                   NULL            00000000 000000 000000 00      0   0  0
+[ 1] .interp           PROGBITS        08048114 000114 000013 00   A  0   0  1
+[ 2] .note.ABI-tag     NOTE            08048128 000128 000020 00   A  0   0  4
+[ 3] .hash             HASH            08048148 000148 000028 04   A  4   0  4
+[ 4] .dynsym           DYNSYM          08048170 000170 000050 10   A  5   1  4
+[ 5] .dynstr           STRTAB          080481c0 0001c0 00004c 00   A  0   0  1
+[ 6] .gnu.version      VERSYM          0804820c 00020c 00000a 02   A  4   0  2
+[ 7] .gnu.version_r    VERNEED         08048218 000218 000020 00   A  5   1  4
+[ 8] .rel.dyn          REL             08048238 000238 000008 08   A  4   0  4
+[ 9] .rel.plt          REL             08048240 000240 000018 08   A  4  11  4
+[10] .init             PROGBITS        08048258 000258 000017 00  AX  0   0  4
+[11] .plt              PROGBITS        08048270 000270 000040 04  AX  0   0  4
+[12] .text             PROGBITS        080482b0 0002b0 0001a8 00  AX  0   0 16
+[13] .fini             PROGBITS        08048458 000458 00001c 00  AX  0   0  4
+[14] .rodata           PROGBITS        08048474 000474 00000c 00   A  0   0  4
+[15] .eh_frame         PROGBITS        08048480 000480 000004 00   A  0   0  4
+[16] .ctors            PROGBITS        08049484 000484 000008 00  WA  0   0  4
+[17] .dtors            PROGBITS        0804948c 00048c 000008 00  WA  0   0  4
+[18] .jcr              PROGBITS        08049494 000494 000004 00  WA  0   0  4
+[19] .dynamic          DYNAMIC         08049498 000498 0000c8 08  WA  5   0  4
+[20] .got              PROGBITS        08049560 000560 000004 04  WA  0   0  4
+[21] .got.plt          PROGBITS        08049564 000564 000018 04  WA  0   0  4
+[22] .data             PROGBITS        0804957c 00057c 000014 00  WA  0   0  4
+[23] .bss              NOBITS          08049590 000590 00000c 00  WA  0   0  4
+[24] .comment          PROGBITS        00000000 000590 0001c7 00      0   0  1
+[25] .debug_aranges    PROGBITS        00000000 000758 000058 00      0   0  8
+[26] .debug_pubnames   PROGBITS        00000000 0007b0 000025 00      0   0  1
+[27] .debug_info       PROGBITS        00000000 0007d5 00019f 00      0   0  1
+[28] .debug_abbrev     PROGBITS        00000000 000974 000062 00      0   0  1
+[29] .debug_line       PROGBITS        00000000 0009d6 00013d 00      0   0  1
+[30] .debug_str        PROGBITS        00000000 000b13 0000d2 01  MS  0   0  1
+[31] .shstrtab         STRTAB          00000000 000be5 000127 00      0   0  1
+[32] .symtab           SYMTAB          00000000 00125c 000550 10     33  63  4
+[33] .strtab           STRTAB          00000000 0017ac 000300 00      0   0  1
+
+
+	
+
+   实例程序:
+  int global_init_var = 84;
+  int global_uninit_var;
+  void func1( int i) {
+	printf("%d\n",i);
+  }
+  int main(void) {
+	static int static_var = 85;
+	static int static_var2;
+	int a = 1;
+    int b;
+	func1( static_var + static_var2 + a + b);
+	return a;
+  }
+1.1 BSS Section
+ .bss段存放的是未初始化的全局变量和未初始化的局部静态变量。
+ objdump -x -s -d simpleSection打印信息如下:
+ 22 .bss          0000000c
+ 08049594 l     O .bss   00000004              static_var2.1785
+ 08049598 g     O .bss   00000004              global_uninit_var
+ 08049590 l     O .bss   00000001              completed.5761
+ 可以看出.bss存放的是全局未初始化的global_uninit_var和未初始化的局部静态变量static_var2,还有completed变量大小为1个字节，
+ 对齐后，则一共是12个字节。
+ global_uninit_var和static_var2是simpleSection.c中的，completed可能是库文件中的。
+
+1.2 代码段
+   代码段名叫: .text
+  通过objdump -s选项，可以看到.text段包括 main和func1函数。
+1.3 数据段
+   数据段名叫: .data
+   .data包含初始化的全局变量和初始化的局部静态变量。
+
+   .data描述表:
+   21 .data         00000014  0804957c  0804957c  0000057c  2**2
+
+   .data的内容：
+   804957c 00000000 00000000 90940408 54000000  ............T...
+   804958c 55000000                             U...
+   说明：0x804957c和0x804958c是地址。
+
+
+
+1.4 只读数据段
+
+2. ELF文件头:
+    
+    ELF的文件头中定义了ELF魔数、文件机器字节长度、数据存储方式、版本、运行平台、ABI版本、ELF重定位类型、
+	硬件平台、硬件平台版本、入口地址、程序头入口和长度、段表的位置和长度以及段的数量。
+
+	ELF文件头的定义如下：
+	typedef struct elf32_hdr{
+		unsigned char	e_ident[EI_NIDENT];
+		Elf32_Half	e_type;
+		Elf32_Half	e_machine;
+		Elf32_Word	e_version;
+		Elf32_Addr	e_entry;  /* Entry point */
+		Elf32_Off	e_phoff;
+		Elf32_Off	e_shoff;
+		Elf32_Word	e_flags;
+		Elf32_Half	e_ehsize;
+		Elf32_Half	e_phentsize;
+		Elf32_Half	e_phnum;
+		Elf32_Half	e_shentsize;
+		Elf32_Half	e_shnum;
+		Elf32_Half	e_shstrndx;
+	} Elf32_Ehdr;
+    
+    从readelf中读出ELF头文件信息，在信息后开始标注了结构体变量。
+	tom@tom-desktop:~/work/kernel-2.6.11-ULK/linux-2.6.11.12/Documentation/study/elf$ readelf -h source/simpleSection
+	ELF Header:
+	Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00             -------
+	Class:                             ELF32                                   |
+	Data:                              2's complement, little endian           |-->e_ident
+	Version:                           1 (current)                             |
+	OS/ABI:                            UNIX - System V                         |
+	ABI Version:                       0                                 -------
+	
+	Type:                              EXEC (Executable file)            --->e_type = 3
+	Machine:                           Intel 80386                       --->e_version = 0x1
+	Version:                           0x1                               --->e_version = 0x01
+	Entry point address:               0x80482b0                         --->e_entry = 0x80482b0
+	Start of program headers:          52 (bytes into file)              --->e_phoff = 0x34=52
+	Start of section headers:          3340 (bytes into file)            --->e_shoff = 0xD0C=3340
+	Flags:                             0x0                               --->e_flags = 0
+	Size of this header:               52 (bytes)                        --->e_ehsize=0x34=52
+	Size of program headers:           32 (bytes)                        --->e_phentsize=0x20=32
+	Number of program headers:         7                                 --->e_phnum=0x7
+	Size of section headers:           40 (bytes)                        --->e_shnum=0x28=40
+	Number of section headers:         34                                --->e_shnum=0x22=34
+	Section header string table index: 31                                --->e_shstrndx=0x1F=31
+
+    说明：
+	e_ident[]数组:也叫魔数Magic Number给出ELF一些标识信息
+	名称      index  取值     解释
+	EI_MAG0    0     0x7f    文件标识，标识是ELF文件
+	EI_MAG1    1     'E'
+	EI_MAG2    2     'L'
+	EI_MAG3    3     'F'
+	EI_CLASS   4                1-32位目标 2-64位目标
+	EI_DATA    5               处理器数据的编码方式  1--高位在前,2--低位在前。
+	EI_VERSION 6               ELF头部的版本号码，必须是EV_CURRENT 
+	EI_PAD     7               补齐字节开始处，初始化为0 
+
+	I32调试下面信息:
+	7f 45 4c 46 01 01 01 00 00 00 00 00
+	可以看出是 32位目标,高位在前，版本号码是CURRENT。
+	通过readelf -h hello输出信息为:
+	ELF Header:
+	Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00 
+	Class:                             ELF32
+	Data:                              2's complement, little endian
+	Version:                           1 (current)
+	OS/ABI:                            UNIX - System V
+	ABI Version:                       0
+
+	e_type:
+	名称      取值       含义
+	ET_NONE   0          未知目标文件格式
+	ET_REL    1          可重定位文件
+	ET_EXEC   2          可执行文件
+	ET_DYN    3          共享目标文件
+	ET_CORE   4          core文件
+	ET_LOPROC 0xff00     特定处理器文件
+	ET_HIPROC 0xffff     特定处理器文件
+	ET_LOPROC和ET_HIPROC之间的取值用来标识与处理器相关的文件格式
+
+	e_machine
+	名称        取值       含义
+	EM_NONE     0          未指定
+	EM_M32      1          AT&T WE 32100
+	ET_SPARC    2          SPARC
+	ET_386      3          Intel 80386
+
+	e_phoff, (32位4字节),program header table的offset
+	e_phentsize, program header table中entry的大小。
+	e_phnum,program header table表中的入口数目。
+    
+
+ 2.1 Program Header Table
+   ELF可执行文件中有一个专门的数据结构叫程序头表(Program Header Table),用来保存“Segment"的信息。程序表头也是一个结构体数组，定义如下：
+   ELF可执行文件被设计得很容易加载到内存，可执行文件的连续的片ELF(chunk)被映射到连续的内存段。程序头部表(Program header table)描述这种关系。
+   站在操作系统装载可执行文件的角度看问题，可以发现它实际上并不关心。
+   程序头会根据读写执行权限，相同权限的section加载到一起。
+
+   EFL头文件中。
+   typedef struct elf32_phdr{
+	   Elf32_Word	p_type;
+	   Elf32_Off	p_offset;
+	   Elf32_Addr	p_vaddr;
+	   Elf32_Addr	p_paddr;
+	   Elf32_Word	p_filesz;
+	   Elf32_Word	p_memsz;
+	   Elf32_Word	p_flags;
+	   Elf32_Word	p_align;
+   } Elf32_Phdr;
+  可以通过readelf -l 读出程序头表。
+  tom@tom-desktop:~/work/kernel-2.6.11-ULK/linux-2.6.11.12/Documentation/study/elf/source$ readelf -l simpleSection
+  Elf file type is EXEC (Executable file)
+  Entry point 0x80482b0
+  There are 7 program headers, starting at offset 52
+  Program Headers:
+  Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+  PHDR           0x000034 0x08048034 0x08048034 0x000e0 0x000e0 R E 0x4
+  INTERP         0x000114 0x08048114 0x08048114 0x00013 0x00013 R   0x1
+  [Requesting program interpreter: /lib/ld-linux.so.2]
+  LOAD           0x000000 0x08048000 0x08048000 0x00484 0x00484 R E 0x1000
+  LOAD           0x000484 0x08049484 0x08049484 0x0010c 0x00118 RW  0x1000
+  DYNAMIC        0x000498 0x08049498 0x08049498 0x000c8 0x000c8 RW  0x4
+  NOTE           0x000128 0x08048128 0x08048128 0x00020 0x00020 R   0x4
+  GNU_STACK      0x000000 0x00000000 0x00000000 0x00000 0x00000 RW  0x4
+  Section to Segment mapping:
+  Segment Sections...
+  00     
+  01     .interp 
+  02     .interp .note.ABI-tag .hash .dynsym .dynstr .gnu.version .gnu.version_r .rel.dyn .rel.plt .init .plt .text .fini .rodata .eh_frame 
+  03     .ctors .dtors .jcr .dynamic .got .got.plt .data .bss 
+  04     .dynamic 
+  05     .note.ABI-tag 
+  06   
+
+
+    
+
+
+   
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+1. Segment和Section区别？
+   从链接的角度看，ELF文件是按Section存储的；从装载的角度看，ELF文件是按照Segment1. Segment
+
+
+
+
+
+
+2. Program Header Table
+   ELF可执行文件中有一个专门的数据结构叫程序头表(Program Header Table),用来保存“Segment"的信息。程序表头也是一个结构体数组，定义如下：
+   ELF可执行文件被设计得很容易加载到内存，可执行文件的连续的片ELF(chunk)被映射到连续的内存段。程序头部表(Program header table)描述这种关系。
+
+   站在操作系统装载可执行文件的角度看问题，可以发现它实际上并不关心。
+
+
+   typedef struct elf32_phdr{
+	   Elf32_Word	p_type;
+	   Elf32_Off	p_offset;
+	   Elf32_Addr	p_vaddr;
+	   Elf32_Addr	p_paddr;
+	   Elf32_Word	p_filesz;
+	   Elf32_Word	p_memsz;
+	   Elf32_Word	p_flags;
+	   Elf32_Word	p_align;
+   } Elf32_Phdr;
+
+3. 
+
+
+参考：
+1. 深入理解计算机系统----第7张 链接
+2. 深入理解Android JAVA虚拟机ART
+3. 

@@ -1,0 +1,96 @@
+目录：
+1. Program Header Table
+2. 附1
+2. 参考
+
+
+
+1. Program Header Table
+   ELF可执行文件中有一个专门的数据结构叫程序头表(Program Header Table),用来保存“Segment"的信息。程序表头也是一个结构体数组，定义如下：
+   ELF可执行文件被设计得很容易加载到内存，可执行文件的连续的片ELF(chunk)被映射到连续的内存段。程序头部表(Program header table)描述这种关系。
+
+   在内核中使用elf32_phdr结构体描述program header table。
+   typedef struct elf32_phdr{
+	   Elf32_Word	p_type;
+	   Elf32_Off	p_offset;
+	   Elf32_Addr	p_vaddr;
+	   Elf32_Addr	p_paddr;
+	   Elf32_Word	p_filesz;
+	   Elf32_Word	p_memsz;
+	   Elf32_Word	p_flags;
+	   Elf32_Word	p_align;
+   } Elf32_Phdr;
+
+   通过命令，读出Program Header Table
+   tom@tom-desktop:~/work/kernel-2.6.11-ULK/linux-2.6.11.12/Documentation/study/elf/source$ readelf -l simpleSection
+	Program Headers:
+	Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+	PHDR           0x000034 0x08048034 0x08048034 0x000e0 0x000e0 R E 0x4
+	INTERP         0x000114 0x08048114 0x08048114 0x00013 0x00013 R   0x1
+	[Requesting program interpreter: /lib/ld-linux.so.2]
+	LOAD           0x000000 0x08048000 0x08048000 0x00484 0x00484 R E 0x1000
+	LOAD           0x000484 0x08049484 0x08049484 0x0010c 0x00118 RW  0x1000
+	DYNAMIC        0x000498 0x08049498 0x08049498 0x000c8 0x000c8 RW  0x4
+	NOTE           0x000128 0x08048128 0x08048128 0x00020 0x00020 R   0x4
+	GNU_STACK      0x000000 0x00000000 0x00000000 0x00000 0x00000 RW  0x4
+
+	Section to Segment mapping:
+	Segment Sections...
+	00     
+	01     .interp 
+	02     .interp .note.ABI-tag .hash .dynsym .dynstr .gnu.version .gnu.version_r .rel.dyn .rel.plt .init .plt .text .fini .rodata .eh_frame 
+	03     .ctors .dtors .jcr .dynamic .got .got.plt .data .bss 
+	04     .dynamic 
+	05     .note.ABI-tag 
+	06     
+	
+	PHDR Addr: 0x34-0x113  Contents:Program header table.
+	INTER Addr: 0x114-0x127 Contents: .interp
+    ..........
+	如Segment mapping所示，每个segment是由几个sections组成的。
+
+	注：从链接的角度看，ELF文件是按Section存储的；从装载的角度看，ELF文件是按照Segment.
+
+
+附1:
+readelf -S simpleSection的信息如下:
+Section Headers:
+[Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
+[ 0]                   NULL            00000000 000000 000000 00      0   0  0
+[ 1] .interp           PROGBITS        08048114 000114 000013 00   A  0   0  1
+[ 2] .note.ABI-tag     NOTE            08048128 000128 000020 00   A  0   0  4
+[ 3] .hash             HASH            08048148 000148 000028 04   A  4   0  4
+[ 4] .dynsym           DYNSYM          08048170 000170 000050 10   A  5   1  4
+[ 5] .dynstr           STRTAB          080481c0 0001c0 00004c 00   A  0   0  1
+[ 6] .gnu.version      VERSYM          0804820c 00020c 00000a 02   A  4   0  2
+[ 7] .gnu.version_r    VERNEED         08048218 000218 000020 00   A  5   1  4
+[ 8] .rel.dyn          REL             08048238 000238 000008 08   A  4   0  4
+[ 9] .rel.plt          REL             08048240 000240 000018 08   A  4  11  4
+[10] .init             PROGBITS        08048258 000258 000017 00  AX  0   0  4
+[11] .plt              PROGBITS        08048270 000270 000040 04  AX  0   0  4
+[12] .text             PROGBITS        080482b0 0002b0 0001a8 00  AX  0   0 16
+[13] .fini             PROGBITS        08048458 000458 00001c 00  AX  0   0  4
+[14] .rodata           PROGBITS        08048474 000474 00000c 00   A  0   0  4
+[15] .eh_frame         PROGBITS        08048480 000480 000004 00   A  0   0  4
+[16] .ctors            PROGBITS        08049484 000484 000008 00  WA  0   0  4
+[17] .dtors            PROGBITS        0804948c 00048c 000008 00  WA  0   0  4
+[18] .jcr              PROGBITS        08049494 000494 000004 00  WA  0   0  4
+[19] .dynamic          DYNAMIC         08049498 000498 0000c8 08  WA  5   0  4
+[20] .got              PROGBITS        08049560 000560 000004 04  WA  0   0  4
+[21] .got.plt          PROGBITS        08049564 000564 000018 04  WA  0   0  4
+[22] .data             PROGBITS        0804957c 00057c 000014 00  WA  0   0  4
+[23] .bss              NOBITS          08049590 000590 00000c 00  WA  0   0  4
+[24] .comment          PROGBITS        00000000 000590 0001c7 00      0   0  1
+[25] .debug_aranges    PROGBITS        00000000 000758 000058 00      0   0  8
+[26] .debug_pubnames   PROGBITS        00000000 0007b0 000025 00      0   0  1
+[27] .debug_info       PROGBITS        00000000 0007d5 00019f 00      0   0  1
+[28] .debug_abbrev     PROGBITS        00000000 000974 000062 00      0   0  1
+[29] .debug_line       PROGBITS        00000000 0009d6 00013d 00      0   0  1
+[30] .debug_str        PROGBITS        00000000 000b13 0000d2 01  MS  0   0  1
+[31] .shstrtab         STRTAB          00000000 000be5 000127 00      0   0  1
+[32] .symtab           SYMTAB          00000000 00125c 000550 10     33  63  4
+[33] .strtab           STRTAB          00000000 0017ac 000300 00      0   0  1
+
+2. 参考：
+   1)深入理解计算机系统----第7张 链接
+	2)深入理解Android JAVA虚拟机ART
