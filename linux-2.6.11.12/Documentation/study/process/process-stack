@@ -1,0 +1,58 @@
+目录:
+1. 进程
+
+
+1. 进程栈
+   进程用户空间的管理在task_struct的mm_struct *mm成员中体现，mm中的成员定义了用户空间的布局如图1.1。
+   用户空间的栈起始于STACK_TOP，每个体系结构都必须定义STACK_TOP，大多数设置为TASK_SIZE,在32位机器该值为0xc000 0000。
+
+1.1 示意图
+   
+   ------------------------ TASK_SIZE
+  |       stack            | 
+  |         |              |
+  |         |              |
+  |			v              |
+  |----------------------------------->mm->mmap_base
+  | //////MMAP/////////    |
+  |///////  | ////////     |
+  | ------- |--------------
+  |         v              |
+  |                        |
+  |                        |
+  |                        |
+  |         ^              |
+  |---------|--------------
+  |////////Heap//////////  | 
+  |________________________|
+  |                        |
+  |        Text            |
+  |                        |
+  |________________________| 0x0804 8000
+  |________________________| 0
+
+1.2 mmap_base
+
+   如示意图1.1, 栈从上而下扩展，而用于内存映射的区域起始于mm->mmap_base,mm->mmap_base通过调用mmap_base函数初始化。
+   为了确保栈不与mmap区域不发生冲突，两者之间设置了一个安全间隙。mmap_base函数源码:
+
+   #define MIN_GAP (128*1024*1024)
+   #define MAX_GAP (TASK_SIZE/6*5)
+   static inline unsigned long mmap_base1(struct mm_struct *mm)
+	{
+        unsigned long gap = current->signal->rlim[RLIMIT_STACK].rlim_cur;// rlim_cur默认是0x800000=8M,可以使用getrlimit(RLIMIT_STACK,&limit)查看。
+
+        if (gap < MIN_GAP) //通过MIN_GAP来保证，进程堆栈的大小为128MB
+                gap = MIN_GAP; 
+        else if (gap > MAX_GAP) // 堆栈最大空间TASK_SIZE/6*5=2.5G 
+                gap = MAX_GAP;
+
+        return TASK_SIZE - (gap & PAGE_MASK) //gap按page对齐后，从栈顶后向下移动gap得到mm->map_base地址
+	}
+
+
+
+
+
+参考：
+1. 线程栈与进程站---https://my.oschina.net/u/1755040/blog/224157/print
