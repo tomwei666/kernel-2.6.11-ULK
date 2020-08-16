@@ -1,0 +1,138 @@
+
+
+
+1. 定义
+   linux_binprm是定义在include/linux/binfmts.h中，用来保存要执行的文件相关的信息，包括可执行程序的路径、参数
+   和环境变量信息:
+   struct linux_binprm{
+		char buf[BINPRM_BUF_SIZE];
+		struct page *page[MAX_ARG_PAGES];
+		struct mm_struct *mm;
+		unsigned long p; /* current top of mem */
+		int sh_bang;
+		struct file * file;
+		int e_uid, e_gid;
+		kernel_cap_t cap_inheritable, cap_permitted, cap_effective;
+		void *security;
+		int argc, envc;
+		char * filename;	/* Name of binary as seen by procps */
+		char * interp;		/* Name of the binary really executed. Most
+				   of the time same as filename, but could be
+				   different for binfmt_{misc,script} */
+		unsigned interp_flags;
+		unsigned interp_data;
+		unsigned long loader, exec;
+   };
+1.1 linux_binprm.p
+   linux_binprm中的p成员作用，注释: current top of mem(内存的栈顶)。
+
+1.1.1 linux_binprm.page的offset
+       linux_binprm.p作为linux_binprm中某个page的offset,只是从这个offset可写。
+	   
+	   内存使用是从高处到底处。
+	   
+	   copy_strings中：
+
+	   // 1. bprm->p=%x
+	   bprm->p -= len;
+	   pos = bprm->p
+	   // 2. bprm->p=%x  len=%x
+	   
+	   while(len>0) {
+		
+		   offset = pos % PAGE_SIZE;
+		   i = pos/PAGE_SIZE;
+
+		   page = bprm->page[i];
+
+		   page = alloc_page(GFP_HIGHUSER);
+
+		   kmapped_page = page;
+		   kaddr = kmap(kmapped_page);
+	       // 3. i=%d kaddr+offset
+
+		   err = copy_from_user(kaddr+offset, str, bytes_to_copy);
+	   }
+
+       例子: 在执行/var/simpleSection后有如下args和环境变量要存储:
+
+str                      len:      debug 1:         debug 2:                                  debug 3:
+
+"/var/simpleSection"                  19            bprm->p=0x1fffc    bprm->p=0x1ffe9        i=31 kaddr+offset=0xff80d000+0xfe9=0xff80dfe9
+"PWD=/"                                6            bprm->p=0x1ffe9    bprm->p=0x1ffe3        i=31 kaddr+offset=0xff80d000+0xfe3=0xff80dfe3
+"SHELL=/bin/sh"                       14            bprm->p=0x1ffe3    bprm->p=0x1ffd5        i=31 kaddr+offset=0xff80d000+0xfd5=0xff80dfd5
+"PATH=/bin:/sbin:/usr/bin:/usr/sbin"  35            bprm->p=0x1ffd5    bprm->p=0x1ffb2        i=31 kaddr+offset=0xff80d000+0xfb2=0xff80dfb2 
+"TERM=vt102"                          11            bprm->p=0x1ffb2    bprm->p=0x1ffa7        i=31 kaddr+offset=0xff80d000+0xfa7=0xff80dfa7
+"PS1=[root@x86 \W]\#"                 21            bprm->p=0x1ffa7    bprm->p=0x1ff92        i=31 kaddr+offset=0xff80d000+0xf92=0xff80df92
+"HOME=/root"                          11            bprm->p=0x1ff92    bprm->p=0x1ff87        i=31 kaddr+offset=0xff80d000+0xf87=0xff80df87
+"LD_LIBRARY_PATH=/lib:/usr/lib:"      31            bprm->p=0x1ff87    bprm->p=0x1ff68        i=31 kaddr+offset=0xff80d000+0xf68=0xff80df68
+"HOSTNAME=x86"                        13            bprm->p=0x1ff68    bprm->p=0x1ff5b        i=31 kaddr+offset=0xff80d000+0xf5b=0xff80df5b
+"USER=root"                           10            bprm->p=0x1ff5b    bprm->p=0x1ff51        i=31 kaddr+offset=0xff80d000+0xf51=0xff80df51
+"/var/simpleSection"                  19            bprm->p=0x1ff51    bprm->p=0x1ff3e        i=31 kaddr+offset=0xff80d000+0xf3e=0xff80df3e
+
+   说明：
+   1)通过对bprm->p对PAGE_SIZE除法，得到bprm->page数组的index。
+   2)通过对bprm->p对PAGE_SIZE取模，得到要写入page的offset。
+
+   示意图：
+
+                   -----------------------------------------------------------
+				   | ///////////          |                               |
+				   |///////////           |                               |
+				   |////////////          |                               |
+				   |//////////////        |                              v
+				   ------------------------<---------bprm->p=0x1ff3e 32*4K=0x2fff
+				   |                      |                               ^
+				   |                      |                               |
+				   |                      |                               |
+				   |                      |                               |
+				   |                      |                               |
+				   |                      |                               |
+				   |                      |                               |
+				   |                      |                               |
+				   -----------------------------------------------------------
+	bprm->p可以理解为，还剩多少字节的参数或者环境变量可以存。bprm->p=32*4k-4-0xBE(已存参数)=0x1ff3E
+
+	1.2 参数地址空间顶部
+
+    源码：
+
+	stack_base = stack_top - MAX_ARG_PAGES * PAGE_SIZE;
+	bprm->p += stack_base;
+	mm->arg_start = bprm->p;
+
+     按照例子：
+	 stack_top=0xC0000000   MAX_ARG_PAGES*PAGE_SIZE=0x20000 stack_base=0xbffe0000
+	 bprm->p =0xbfffff3e
+
+
+                   ------------------------  <-------stack_top=0xC000 0000
+				   | ///////////          |                               
+				   |----------------------|  -------bprm->p=stack_base+0x1ff3e=0xbfff ff3e
+				   |                      |                              
+				   |                      |
+				   ------------------------  <-------stack_base=0xbffe 0000
+				   |                      |                               
+				   |                      |                               
+				   |                      |                               
+				   |                      |                               
+				   |                      |                               
+				   |                      |                               
+				   |                      |                               
+				   |                      |                               
+				   ------------------------  
+
+     bprm->p指向保存参数栈未使用的地址最高处。
+
+
+
+
+
+
+				         
+
+
+	   
+
+
+   
