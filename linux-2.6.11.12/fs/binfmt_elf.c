@@ -500,7 +500,10 @@ out:
 #define INTERPRETER_AOUT 1
 #define INTERPRETER_ELF 2
 
-
+/*
+ * 函数作用：
+ * 
+ */
 static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 {
 	struct file *interpreter = NULL; /* to shut gcc up */
@@ -522,6 +525,14 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 	struct files_struct *files;
 	int have_pt_gnu_stack, executable_stack = EXSTACK_DEFAULT;
 	unsigned long def_flags = 0;
+
+	/* 注释1：
+	 * bprm->buf保存了加载二进制ELF的128个字节，128个字节，包括ELF的文件头(52个字节），包括Pragrame header table中一些
+	 * loc中elf_ex保存要加载的/var/simpleSection的ELF的前52个字节
+	 * loc中interp_elf_ex保存要加载的/lib/ld-linux.so.2的ELF的前52个字节
+	 * loc中interp_elf_ex保存要加载的ELF的前32个字节
+	 *
+	 */
 	struct {
 		struct elfhdr elf_ex;
 		struct elfhdr interp_elf_ex;
@@ -562,6 +573,11 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 	if (!elf_phdata)
 		goto out;
 
+	/* 注释2：
+	 * size = program table entry number * the size of elf_phdr = 程序头表个数*entry大小
+	 * loc->elf_ex.ex_phoff: program header在/var/simpleSection的偏移量  
+	 * 通过kernel_read把/var/simpleSection中的Program header table内容保存到elf_phdata中。
+	 */
 	retval = kernel_read(bprm->file, loc->elf_ex.e_phoff, (char *) elf_phdata, size);
 	if (retval != size) {
 		if (retval >= 0)
@@ -595,6 +611,24 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 	end_code = 0;
 	start_data = 0;
 	end_data = 0;
+
+	/* 注释3：
+	 * Program Headers:
+	 * Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+	 * PHDR           0x000034 0x08048034 0x08048034 0x000e0 0x000e0 R E 0x4
+	 * INTERP         0x000114 0x08048114 0x08048114 0x00013 0x00013 R   0x1
+	 * [Requesting program interpreter: /lib/ld-linux.so.2]
+	 * LOAD           0x000000 0x08048000 0x08048000 0x00484 0x00484 R E 0x1000
+	 * LOAD           0x000484 0x08049484 0x08049484 0x0010c 0x00118 RW  0x1000
+	 * DYNAMIC        0x000498 0x08049498 0x08049498 0x000c8 0x000c8 RW  0x4
+	 * NOTE           0x000128 0x08048128 0x08048128 0x00020 0x00020 R   0x4
+	 * GNU_STACK      0x000000 0x00000000 0x00000000 0x00000 0x00000 RW  0x4
+	 * 从program header table中，寻找p_type等于PT_INTERP。
+	 * 然后从INTERP指向的地质读出字符串“/lib/ld-linux.so.2”
+	 * 1) 从/lib/ld-linux.so.2中读出128个字节到bprm->buf中。
+	 * 2) loc->interp_exc从bprm->buf读取32个字节并转换成struct exec类型。
+	 * 3) loc->interp_elf_ex读取52个字节并转换换成struct elfhdr类型。
+	 */
 
 	for (i = 0; i < loc->elf_ex.e_phnum; i++) {
 		if (elf_ppnt->p_type == PT_INTERP) {
@@ -668,6 +702,54 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 			}
 
 			/* Get the exec headers */
+			/* 注释4：
+			 * /lib/ld-linux.so.2的内容如下：
+			 * 00000000  7f 45 4c 46 01 01 01 00  00 00 00 00 00 00 00 00  |.ELF............|
+			 * 00000010  03 00 03 00 01 00 00 00  40 08 00 00 34 00 00 00  |........@...4...|
+			 * 00000020  00 97 01 00 00 00 00 00  34 00 20 00 06 00 28 00  |........4. ...(.|
+			 * 00000030  17 00 16 00 01 00 00 00  00 00 00 00 00 00 00 00  |................|
+			 * 00000040  00 00 00 00 14 87 01 00  14 87 01 00 05 00 00 00  |................|
+			 * 00000050  00 10 00 00 01 00 00 00  c0 8c 01 00 c0 9c 01 00  |................|
+			 * 00000060  c0 9c 01 00 58 09 00 00  10 0a 00 00 06 00 00 00  |....X...........|
+			 * 00000070  00 10 00 00 02 00 00 00  28 8f 01 00 28 9f 01 00  |........(...(...|
+			 * 00000080  28 9f 01 00 b0 00 00 00  b0 00 00 00 06 00 00 00  |(...............|
+			 * 00000090  04 00 00 00 50 e5 74 64  80 82 01 00 80 82 01 00  |....P.td........|
+			 * 000000a0  80 82 01 00 f4 00 00 00  f4 00 00 00 04 00 00 00  |................|
+			 * 000000b0  04 00 00 00 51 e5 74 64  00 00 00 00 00 00 00 00  |....Q.td........|
+			 * 000000c0  00 00 00 00 00 00 00 00  00 00 00 00 06 00 00 00  |................|
+			 * 000000d0  04 00 00 00 52 e5 74 64  c0 8c 01 00 c0 9c 01 00  |....R.td........|
+			 * 000000e0  c0 9c 01 00 20 03 00 00  20 03 00 00 04 00 00 00  |.... ... .......|
+			 * 000000f0  20 00 00 00 25 00 00 00  26 00 00 00 22 00 00 00  | ...%...&..."...|
+			 * 00000100  00 00 00 00 24 00 00 00  1e 00 00 00 00 00 00 00  |....$...........|
+			 *
+			 * 根据打印信息知道:
+			 * loc->interp_ex.a_info=0x46 loc->interp_ex.a_info=0x46 
+			 * loc->interp_ex.a_info=0x46 loc->interp_ex.a_info=0x46 
+			 * loc->interp_ex.a_info=0x46 loc->interp_ex.a_info=0x46 
+			 * tom 464c457f 10101 0 0 30003 1 840 34
+			 * loc->interp_ex.a_info = 0x464c457f       loc->interp_ex.a_text = 0x010101=0x10101
+			 * loc->interp_ex.a_data = 0x0              loc->interp_ex.a_bss =  0x030003=0x0
+			 * loc->interp_ex.a_syms = 0x30003             loc->interp_ex.a_entry= 0x0840=0x1
+			 * loc->interp_ex.a_trsize=0x0840=0x840     loc->interp_ex.a_drsize= 0x34 
+			 *
+			 * loc->interp_exc从bprm->buf读取32个字节并转换成struct exec类型。
+			 * loc->interp_elf_ex从bprm->buf读取52个字节并转换成struct elfhdr类型。
+			 *
+			 * Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+			 * PHDR           0x000034 0x08048034 0x08048034 0x000e0 0x000e0 R E 0x4
+			 * INTERP         0x000114 0x08048114 0x08048114 0x00013 0x00013 R   0x1
+			 * [Requesting program interpreter: /lib/ld-linux.so.2]
+			 * LOAD           0x000000 0x08048000 0x08048000 0x00484 0x00484 R E 0x1000
+			 * LOAD           0x000484 0x08049484 0x08049484 0x0010c 0x00118 RW  0x1000
+			 * DYNAMIC        0x000498 0x08049498 0x08049498 0x000c8 0x000c8 RW  0x4
+			 * NOTE           0x000128 0x08048128 0x08048128 0x00020 0x00020 R   0x4
+			 * GNU_STACK      0x000000 0x00000000 0x00000000 0x00000 0x00000 RW  0x4
+			 * 从program header table中，寻找p_type等于PT_INTERP。
+			 * 然后从INTERP指向的地质读出字符串“/lib/ld-linux.so.2”
+			 * 1) 从/lib/ld-linux.so.2中读出128个字节到bprm->buf中。
+			 * 2) loc->interp_exc从bprm->buf读取32个字节并转换成struct exec类型。
+			 * 3) loc->interp_elf_ex从bprm->buf读取52个字节并转换成struct elfhdr类型。
+			 */
 			loc->interp_ex = *((struct exec *) bprm->buf);
 			loc->interp_elf_ex = *((struct elfhdr *) bprm->buf);
 			break;
@@ -675,6 +757,15 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 		elf_ppnt++;
 	}
 
+	/* 注释5：
+	 * elf_phdata保存是/var/simpleSection的Program header table内容。
+	 * Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+	 * GNU_STACK      0x000000 0x00000000 0x00000000 0x00000 0x00000 RW  0x4
+	 * 可以看出GNU_STACK的Flg是RW，不是X。
+	 * executable_stack = EXSTACK_DISABLE_X;
+	 * have_pt_gnu_stack = (i < loc->elf_ex.e_phnum);
+	 * executable_stack 判断Programe header table，显然/var/simpleSection包含GNU_STACK。
+	 */
 	elf_ppnt = elf_phdata;
 	for (i = 0; i < loc->elf_ex.e_phnum; i++, elf_ppnt++)
 		if (elf_ppnt->p_type == PT_GNU_STACK) {
@@ -687,6 +778,7 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 	have_pt_gnu_stack = (i < loc->elf_ex.e_phnum);
 
 	/* Some simple consistency checks for the interpreter */
+	/* 注释6:检查/lib/ld-linux.so.2的interpreter的合法性*/
 	if (elf_interpreter) {
 		interpreter_type = INTERPRETER_ELF | INTERPRETER_AOUT;
 
@@ -760,6 +852,13 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 	if (elf_read_implies_exec(loc->elf_ex, executable_stack))
 		current->personality |= READ_IMPLIES_EXEC;
 
+	/* 注释6：
+	 * 设置:
+	 * current->mm->mmap_base
+	 * current->mm->get_unmapped_area
+	 * current->mm->unmap_area
+	 * 
+	 */
 	arch_pick_mmap_layout(current->mm);
 
 	/* Do this so that we can load the interpreter, if need be.  We will
