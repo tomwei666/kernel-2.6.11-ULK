@@ -247,12 +247,13 @@ typedef struct elf64_sym {
 
 #define EI_NIDENT	16
 
+ /* 这个结构体长度: 16+2*2+4*5+2*6=16+4+20+12=52 */
 typedef struct elf32_hdr{
-  unsigned char	e_ident[EI_NIDENT];
-  Elf32_Half	e_type;
-  Elf32_Half	e_machine;
-  Elf32_Word	e_version;
-  Elf32_Addr	e_entry;  /* Entry point */
+  unsigned char	e_ident[EI_NIDENT];                  //16 bytes
+  Elf32_Half	e_type;                              // 2 bytes
+  Elf32_Half	e_machine;                           // 2 bytes
+  Elf32_Word	e_version;                           // 4 bytes
+  Elf32_Addr	e_entry;  /* Entry point */          // 4
   Elf32_Off	e_phoff;
   Elf32_Off	e_shoff;
   Elf32_Word	e_flags;
@@ -287,6 +288,7 @@ typedef struct elf64_hdr {
 #define PF_W		0x2
 #define PF_X		0x1
 
+/*length = 4*8 = 32  */
 typedef struct elf32_phdr{
   Elf32_Word	p_type;
   Elf32_Off	p_offset;
