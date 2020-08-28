@@ -48,6 +48,8 @@
 #include <asm/cacheflush.h>
 #include <asm/tlbflush.h>
 
+#define DEBUG_TAG 1
+
 /*
  * Protected counters by write_lock_irq(&tasklist_lock)
  */
@@ -158,6 +160,23 @@ static struct task_struct *dup_task_struct(struct task_struct *orig)
 	return tsk;
 }
 
+/*
+ * 作用：从进程的内存描述符(struct mm_struct)中的mm_rb轮询每个VMA节点，并打印VMA的地址
+ * 输入:mm_struct中的mm_rb(struct rb_root)的地址
+ */
+void print_mm_vma(struct rb_root *tree)
+{
+	struct rb_node *node;
+	struct vm_area_struct *tmp;
+
+	for (node = rb_first(tree); node; node = rb_next(node)) {
+		tmp = rb_entry(node, struct vm_area_struct, vm_rb);
+		printk(KERN_ERR "tom F=%s L=%d start=%x end=%x\n",__FUNCTION__,__LINE__,tmp->vm_start,tmp->vm_end);
+	}
+
+}
+
+
 #ifdef CONFIG_MMU
 static inline int dup_mmap(struct mm_struct * mm, struct mm_struct * oldmm)
 {
@@ -181,6 +200,9 @@ static inline int dup_mmap(struct mm_struct * mm, struct mm_struct * oldmm)
 	rb_link = &mm->mm_rb.rb_node;
 	rb_parent = NULL;
 	pprev = &mm->mmap;
+
+	if(mm->tag == DEBUG_TAG)
+		print_mm_vma(&oldmm->mm_rb);
 
 	for (mpnt = current->mm->mmap ; mpnt ; mpnt = mpnt->vm_next) {
 		struct file *file;
