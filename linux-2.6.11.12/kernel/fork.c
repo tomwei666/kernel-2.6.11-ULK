@@ -201,8 +201,10 @@ static inline int dup_mmap(struct mm_struct * mm, struct mm_struct * oldmm)
 	rb_parent = NULL;
 	pprev = &mm->mmap;
 
-	if(mm->tag == DEBUG_TAG)
+#ifdef MM_STRUCT_DEBUG
+	if(mm->mm_struct_debug == MM_STRUCT_DEBUG_TAG)
 		print_mm_vma(&oldmm->mm_rb);
+#endif
 
 	for (mpnt = current->mm->mmap ; mpnt ; mpnt = mpnt->vm_next) {
 		struct file *file;

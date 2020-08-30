@@ -915,6 +915,13 @@ unsigned long do_mmap_pgoff(struct file * file, unsigned long addr,
 	/* Obtain the address to map to. we verify (or select) it and ensure
 	 * that it represents a valid section of the address space.
 	 */
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(file){
+		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d addr=%x len=%x\n",\
+				__FUNCTION__,__LINE__,addr,len);
+	}
+#endif
 	addr = get_unmapped_area(file, addr, len, pgoff, flags);
 	if (addr & ~PAGE_MASK)
 		return addr;
@@ -1316,6 +1323,7 @@ get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
 		unsigned long pgoff, unsigned long flags)
 {
 	unsigned long ret;
+
 
 	if (!(flags & MAP_FIXED)) {
 		unsigned long (*get_area)(struct file *, unsigned long, unsigned long, unsigned long, unsigned long);

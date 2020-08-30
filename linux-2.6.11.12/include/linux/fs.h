@@ -573,6 +573,8 @@ struct file_ra_state {
 #define RA_FLAG_MISS 0x01	/* a cache miss occured against this file */
 #define RA_FLAG_INCACHE 0x02	/* file is already in cache */
 
+#define LOAD_ELF_BINARY_DEBUG
+#define LOAD_ELF_BINARY_DEBUG_TAG 1
 struct file {
 	struct list_head	f_list;
 	struct dentry		*f_dentry;
@@ -600,6 +602,7 @@ struct file {
 	spinlock_t		f_ep_lock;
 #endif /* #ifdef CONFIG_EPOLL */
 	struct address_space	*f_mapping;
+	int load_elf_binary_debug;
 };
 extern spinlock_t files_lock;
 #define file_list_lock() spin_lock(&files_lock);

@@ -203,7 +203,8 @@ arch_get_unmapped_area_topdown(struct file *filp, unsigned long addr,
 extern void arch_unmap_area(struct vm_area_struct *area);
 extern void arch_unmap_area_topdown(struct vm_area_struct *area);
 
-
+//#define MM_STRUCT_DEBUG
+#define MM_STRUCT_DEBUG_TAG 1
 struct mm_struct {
 	struct vm_area_struct * mmap;		/* list of VMAs */
 	struct rb_root mm_rb;
@@ -256,6 +257,7 @@ struct mm_struct {
 
 	unsigned long hiwater_rss;	/* High-water RSS usage */
 	unsigned long hiwater_vm;	/* High-water virtual memory usage */
+	int mm_struct_debug
 };
 
 struct sighand_struct {

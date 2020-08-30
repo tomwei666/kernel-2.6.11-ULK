@@ -296,6 +296,10 @@ static unsigned long elf_map(struct file *filep, unsigned long addr,
 	unsigned long map_addr;
 
 	down_write(&current->mm->mmap_sem);
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(filep->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+		printk(KERN_ERR "tom F=%s p_filesz=%x %x %x\n",__FUNCTION__,eppnt->p_filesz,eppnt->p_vaddr,eppnt->p_offset);
+#endif
 	map_addr = do_mmap(filep, ELF_PAGESTART(addr),
 			   eppnt->p_filesz + ELF_PAGEOFFSET(eppnt->p_vaddr), prot, type,
 			   eppnt->p_offset - ELF_PAGEOFFSET(eppnt->p_vaddr));
@@ -321,6 +325,7 @@ static unsigned long load_elf_interp(struct elfhdr * interp_elf_ex,
 	unsigned long last_bss = 0, elf_bss = 0;
 	unsigned long error = ~0UL;
 	int retval, i, size;
+
 
 	/* First of all, some simple consistency checks */
 	if (interp_elf_ex->e_type != ET_EXEC &&
@@ -370,9 +375,15 @@ static unsigned long load_elf_interp(struct elfhdr * interp_elf_ex,
 	    if (eppnt->p_flags & PF_W) elf_prot |= PROT_WRITE;
 	    if (eppnt->p_flags & PF_X) elf_prot |= PROT_EXEC;
 	    vaddr = eppnt->p_vaddr;
+
 	    if (interp_elf_ex->e_type == ET_EXEC || load_addr_set)
 	    	elf_type |= MAP_FIXED;
 
+#ifdef LOAD_ELF_BINARY_DEBUG
+		if(interpreter->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d load_addr=%x vaddr=%x load_addr+vaddr=%x\n"\
+				,__FUNCTION__,__LINE__,load_addr,vaddr,load_addr+vaddr);
+#endif
 	    map_addr = elf_map(interpreter, load_addr + vaddr, eppnt, elf_prot, elf_type);
 	    error = map_addr;
 	    if (BAD_ADDR(map_addr))
@@ -500,6 +511,7 @@ out:
 #define INTERPRETER_AOUT 1
 #define INTERPRETER_ELF 2
 
+#define DEBUG_FILE_NAME "/var/simpleSection"
 /*
  * 函数作用：
  * 
@@ -544,7 +556,6 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 		retval = -ENOMEM;
 		goto out_ret;
 	}
-	
 	/* Get the exec-header */
 	loc->elf_ex = *((struct elfhdr *) bprm->buf);
 
@@ -691,6 +702,12 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 			SET_PERSONALITY(loc->elf_ex, ibcs2_interpreter);
 
 			interpreter = open_exec(elf_interpreter);
+
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if (!strncmp(bprm->filename,DEBUG_FILE_NAME,sizeof(DEBUG_FILE_NAME)))
+		interpreter-> load_elf_binary_debug = 1;
+#endif
+
 			retval = PTR_ERR(interpreter);
 			if (IS_ERR(interpreter))
 				goto out_free_interp;
