@@ -1362,6 +1362,13 @@ get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
 EXPORT_SYMBOL(get_unmapped_area);
 
 /* Look up the first VMA which satisfies  addr < vm_end,  NULL if none. */
+/*
+ * 作用：就是把addr可能在的VMA空间返回。
+ *       例子，addr=43，有四个VMA:20-35,40-45,50-55,60-65,则返回40-45这个VMA.
+ *       并把40-45的VMA赋值给mm->mmap_cache，以便下次使用。 
+ *  注意: addr和VMA->vm_start和VMA->vm_end.
+ */
+
 struct vm_area_struct * find_vma(struct mm_struct * mm, unsigned long addr)
 {
 	struct vm_area_struct *vma = NULL;
@@ -1400,6 +1407,20 @@ struct vm_area_struct * find_vma(struct mm_struct * mm, unsigned long addr)
 EXPORT_SYMBOL(find_vma);
 
 /* Same as find_vma, but also return a pointer to the previous VMA in *pprev. */
+/*
+ * 作用：就是把addr可能在的节点返回，并把节点前一个节点返回。
+ *       例子，addr=43，有四个节点:20-35,40-45,50-55,60-65,则返回40-45节点，并把
+ *       20-35节点赋值pprev。
+ *
+ * 步骤：轮询红黑书的节点，直到addr>vma_tmp->vm_end,比如20-35，40-45，50-55，60-65
+ *       addr=43,则会43>35,则prev=vma_tmp=20-35，这个节点，
+ *       prev->vm_next节点是40-45,难道连表的节点也是按照从小到大的顺序？
+ *       同时比较addr是否小于prev->vm_next->vm_end.
+ *       也就是 prev->vm_end < addr < prev->vm_next->vm_end
+ *       返回，prev->vm_next,同时把prev给pprev。
+ *
+ * 注意： 这个函数并没有把addr和VMA->vm_end作比较。
+ */
 struct vm_area_struct *
 find_vma_prev(struct mm_struct *mm, unsigned long addr,
 			struct vm_area_struct **pprev)
@@ -2032,6 +2053,12 @@ void exit_mmap(struct mm_struct *mm)
  * and into the inode's i_mmap tree.  If vm_file is non-NULL
  * then i_mmap_lock is taken here.
  */
+/*
+ * 作用：把VMA插入到mm中的VMA红黑树。
+ *       1)通过find_vma_prepare，找到VMA在红黑树的prev,rb_link,rb_parent。
+ *       2)vma_link通过VMA,prev,rb_link,rb_parent,把VMA插入到红黑树中。
+ */
+
 int insert_vm_struct(struct mm_struct * mm, struct vm_area_struct * vma)
 {
 	struct vm_area_struct * __vma, * prev;
