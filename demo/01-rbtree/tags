@@ -1,0 +1,85 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.7	//
+CC	Makefile	/^CC = gcc$/;"	m
+NULL	rbtree.h	101;"	d
+NULL	rbtree.h	103;"	d
+NULL	rbtree.h	105;"	d
+RB_BLACK	rbtree.h	124;"	d
+RB_RED	rbtree.h	123;"	d
+RB_ROOT	rbtree.h	134;"	d
+TARGET	Makefile	/^TARGET = main main1 vma$/;"	m
+_LINUX_RBTREE_H	rbtree.h	95;"	d
+_LINUX_RBTREE_H	vma.h	3;"	d
+__rb_erase_color	rbtree.c	/^static void __rb_erase_color(struct rb_node *node, struct rb_node *parent,$/;"	f	file:	signature:(struct rb_node *node, struct rb_node *parent, struct rb_root *root)
+__rb_rotate_left	rbtree.c	/^static void __rb_rotate_left(struct rb_node *node, struct rb_root *root)$/;"	f	file:	signature:(struct rb_node *node, struct rb_root *root)
+__rb_rotate_right	rbtree.c	/^static void __rb_rotate_right(struct rb_node *node, struct rb_root *root)$/;"	f	file:	signature:(struct rb_node *node, struct rb_root *root)
+container_of	rbtree.h	114;"	d
+find_vma_prev	vma.c	/^find_vma_prev(struct mm_struct *mm, unsigned long addr,                             $/;"	f	signature:(struct mm_struct *mm, unsigned long addr, struct vm_area_struct **pprev)
+main	test.c	/^int main(int argc, char *argv[])$/;"	f	signature:(int argc, char *argv[])
+main	test1.c	/^int main(int argc, char *argv[])$/;"	f	signature:(int argc, char *argv[])
+main	vma.c	/^int main(int argc, char *argv[])$/;"	f	signature:(int argc, char *argv[])
+mm_rb	vma.h	/^	struct rb_root mm_rb; $/;"	m	struct:mm_struct	typeref:struct:mm_struct::rb_root	access:public
+mm_struct	vma.h	/^struct mm_struct {$/;"	s
+mm_struct::mm_rb	vma.h	/^	struct rb_root mm_rb; $/;"	m	struct:mm_struct	typeref:struct:mm_struct::rb_root	access:public
+mm_struct::mmap	vma.h	/^	struct vm_area_struct * mmap;       \/* list of VMAs *\/$/;"	m	struct:mm_struct	typeref:struct:mm_struct::vm_area_struct	access:public
+mmap	vma.h	/^	struct vm_area_struct * mmap;       \/* list of VMAs *\/$/;"	m	struct:mm_struct	typeref:struct:mm_struct::vm_area_struct	access:public
+my_delete	test.c	/^void my_delete(struct rb_root *root, int num)$/;"	f	signature:(struct rb_root *root, int num)
+my_delete	test1.c	/^void my_delete(struct rb_root *root, int num)$/;"	f	signature:(struct rb_root *root, int num)
+my_insert	test.c	/^int my_insert(struct rb_root *root, struct mytype *data)$/;"	f	signature:(struct rb_root *root, struct mytype *data)
+my_insert	test1.c	/^int my_insert(struct rb_root *root, struct mytype *data)$/;"	f	signature:(struct rb_root *root, struct mytype *data)
+my_node	test.c	/^	    struct rb_node my_node;$/;"	m	struct:mytype	typeref:struct:mytype::rb_node	file:	access:public
+my_node	test1.c	/^	    struct rb_node my_node;$/;"	m	struct:mytype	typeref:struct:mytype::rb_node	file:	access:public
+my_search	test.c	/^struct mytype *my_search(struct rb_root *root, int num)$/;"	f	signature:(struct rb_root *root, int num)
+my_search	test1.c	/^struct mytype *my_search(struct rb_root *root, int num)$/;"	f	signature:(struct rb_root *root, int num)
+mytype	test.c	/^struct mytype {$/;"	s	file:
+mytype	test1.c	/^struct mytype {$/;"	s	file:
+mytype::my_node	test.c	/^	    struct rb_node my_node;$/;"	m	struct:mytype	typeref:struct:mytype::rb_node	file:	access:public
+mytype::my_node	test1.c	/^	    struct rb_node my_node;$/;"	m	struct:mytype	typeref:struct:mytype::rb_node	file:	access:public
+mytype::num	test.c	/^		    int num;$/;"	m	struct:mytype	file:	access:public
+mytype::num	test1.c	/^		    int num;$/;"	m	struct:mytype	file:	access:public
+num	test.c	/^		    int num;$/;"	m	struct:mytype	file:	access:public
+num	test1.c	/^		    int num;$/;"	m	struct:mytype	file:	access:public
+offsetof	rbtree.h	110;"	d
+print_rbtree	test.c	/^void print_rbtree(struct rb_root *tree)$/;"	f	signature:(struct rb_root *tree)
+print_rbtree	test1.c	/^void print_rbtree(struct rb_root *tree)$/;"	f	signature:(struct rb_root *tree)
+rb_color	rbtree.h	/^	int rb_color;$/;"	m	struct:rb_node	access:public
+rb_entry	rbtree.h	135;"	d
+rb_erase	rbtree.c	/^void rb_erase(struct rb_node *node, struct rb_root *root)$/;"	f	signature:(struct rb_node *node, struct rb_root *root)
+rb_erase	rbtree.h	/^extern void rb_erase(struct rb_node *, struct rb_root *);$/;"	p	signature:(struct rb_node *, struct rb_root *)
+rb_first	rbtree.c	/^struct rb_node *rb_first(struct rb_root *root)$/;"	f	signature:(struct rb_root *root)
+rb_first	rbtree.h	/^extern struct rb_node *rb_first(struct rb_root *);$/;"	p	signature:(struct rb_root *)
+rb_insert_color	rbtree.c	/^void rb_insert_color(struct rb_node *node, struct rb_root *root)$/;"	f	signature:(struct rb_node *node, struct rb_root *root)
+rb_insert_color	rbtree.h	/^extern void rb_insert_color(struct rb_node *, struct rb_root *);$/;"	p	signature:(struct rb_node *, struct rb_root *)
+rb_last	rbtree.c	/^struct rb_node *rb_last(struct rb_root *root)$/;"	f	signature:(struct rb_root *root)
+rb_last	rbtree.h	/^extern struct rb_node *rb_last(struct rb_root *);$/;"	p	signature:(struct rb_root *)
+rb_left	rbtree.h	/^	struct rb_node *rb_left;$/;"	m	struct:rb_node	typeref:struct:rb_node::rb_node	access:public
+rb_link_node	rbtree.h	/^static inline void rb_link_node(struct rb_node * node, struct rb_node * parent,$/;"	f	signature:(struct rb_node * node, struct rb_node * parent, struct rb_node ** rb_link)
+rb_next	rbtree.c	/^struct rb_node *rb_next(struct rb_node *node)$/;"	f	signature:(struct rb_node *node)
+rb_next	rbtree.h	/^extern struct rb_node *rb_next(struct rb_node *);$/;"	p	signature:(struct rb_node *)
+rb_node	rbtree.h	/^	struct rb_node *rb_node;$/;"	m	struct:rb_root	typeref:struct:rb_root::rb_node	access:public
+rb_node	rbtree.h	/^struct rb_node$/;"	s
+rb_node::rb_color	rbtree.h	/^	int rb_color;$/;"	m	struct:rb_node	access:public
+rb_node::rb_left	rbtree.h	/^	struct rb_node *rb_left;$/;"	m	struct:rb_node	typeref:struct:rb_node::rb_node	access:public
+rb_node::rb_parent	rbtree.h	/^	struct rb_node *rb_parent;$/;"	m	struct:rb_node	typeref:struct:rb_node::rb_node	access:public
+rb_node::rb_right	rbtree.h	/^	struct rb_node *rb_right;$/;"	m	struct:rb_node	typeref:struct:rb_node::rb_node	access:public
+rb_parent	rbtree.h	/^	struct rb_node *rb_parent;$/;"	m	struct:rb_node	typeref:struct:rb_node::rb_node	access:public
+rb_prev	rbtree.c	/^struct rb_node *rb_prev(struct rb_node *node)$/;"	f	signature:(struct rb_node *node)
+rb_prev	rbtree.h	/^extern struct rb_node *rb_prev(struct rb_node *);$/;"	p	signature:(struct rb_node *)
+rb_replace_node	rbtree.c	/^void rb_replace_node(struct rb_node *victim, struct rb_node *new,$/;"	f	signature:(struct rb_node *victim, struct rb_node *new, struct rb_root *root)
+rb_replace_node	rbtree.h	/^extern void rb_replace_node(struct rb_node *victim, struct rb_node *new, $/;"	p	signature:(struct rb_node *victim, struct rb_node *new, struct rb_root *root)
+rb_right	rbtree.h	/^	struct rb_node *rb_right;$/;"	m	struct:rb_node	typeref:struct:rb_node::rb_node	access:public
+rb_root	rbtree.h	/^struct rb_root$/;"	s
+rb_root::rb_node	rbtree.h	/^	struct rb_node *rb_node;$/;"	m	struct:rb_root	typeref:struct:rb_root::rb_node	access:public
+vm_area_struct	vma.h	/^struct vm_area_struct {$/;"	s
+vm_area_struct::vm_end	vma.h	/^	unsigned long vm_end;       \/* The first byte after our end address$/;"	m	struct:vm_area_struct	access:public
+vm_area_struct::vm_mm	vma.h	/^	struct mm_struct * vm_mm;   \/* The address space we belong to. *\/$/;"	m	struct:vm_area_struct	typeref:struct:vm_area_struct::mm_struct	access:public
+vm_area_struct::vm_next	vma.h	/^	struct vm_area_struct *vm_next;$/;"	m	struct:vm_area_struct	typeref:struct:vm_area_struct::vm_area_struct	access:public
+vm_area_struct::vm_start	vma.h	/^	unsigned long vm_start;     \/* Our start address within vm_mm. *\/$/;"	m	struct:vm_area_struct	access:public
+vm_end	vma.h	/^	unsigned long vm_end;       \/* The first byte after our end address$/;"	m	struct:vm_area_struct	access:public
+vm_mm	vma.h	/^	struct mm_struct * vm_mm;   \/* The address space we belong to. *\/$/;"	m	struct:vm_area_struct	typeref:struct:vm_area_struct::mm_struct	access:public
+vm_next	vma.h	/^	struct vm_area_struct *vm_next;$/;"	m	struct:vm_area_struct	typeref:struct:vm_area_struct::vm_area_struct	access:public
+vm_start	vma.h	/^	unsigned long vm_start;     \/* Our start address within vm_mm. *\/$/;"	m	struct:vm_area_struct	access:public
