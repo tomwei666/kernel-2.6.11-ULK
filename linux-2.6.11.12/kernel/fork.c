@@ -49,6 +49,7 @@
 #include <asm/tlbflush.h>
 
 #define DEBUG_TAG 1
+#define APP_FIRST_PID 0x37B
 
 /*
  * Protected counters by write_lock_irq(&tasklist_lock)
@@ -484,6 +485,7 @@ static int copy_mm(unsigned long clone_flags, struct task_struct * tsk)
 		goto fail_nomem;
 
 	/* Copy the current MM stuff.. */
+	
 	memcpy(mm, oldmm, sizeof(*mm));
 	if (!mm_init(mm))
 		goto fail_nomem;
@@ -491,6 +493,10 @@ static int copy_mm(unsigned long clone_flags, struct task_struct * tsk)
 	if (init_new_context(tsk,mm))
 		goto fail_nocontext;
 
+	if( (tsk->pid==APP_FIRST_PID) || (tsk->pid==(APP_FIRST_PID+1)))
+	{
+		mm->mm_struct_debug=MM_STRUCT_DEBUG_TAG;
+	}
 	retval = dup_mmap(mm, oldmm);
 	if (retval)
 		goto free_pt;
@@ -807,6 +813,7 @@ asmlinkage long sys_set_tid_address(int __user *tidptr)
  * parts of the process environment (as per the clone
  * flags). The actual kick-off is left to the caller.
  */
+/*#define FIRST_APP_PID 0x37B*/
 static task_t *copy_process(unsigned long clone_flags,
 				 unsigned long stack_start,
 				 struct pt_regs *regs,

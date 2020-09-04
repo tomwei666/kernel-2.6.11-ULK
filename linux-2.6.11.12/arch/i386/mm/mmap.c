@@ -57,6 +57,11 @@ void arch_pick_mmap_layout(struct mm_struct *mm)
 	 * Fall back to the standard layout if the personality
 	 * bit is set, or if the expected stack growth is unlimited:
 	 */
+
+#ifdef MM_STRUCT_DEBUG
+	if(mm->mm_struct_debug == MM_STRUCT_DEBUG_TAG)
+		printk(KERN_ERR "tom mmap_base=%x\n",mm->mmap_base);
+#endif
 	if (sysctl_legacy_va_layout ||
 			(current->personality & ADDR_COMPAT_LAYOUT) ||
 			current->signal->rlim[RLIMIT_STACK].rlim_cur == RLIM_INFINITY) {
@@ -65,6 +70,10 @@ void arch_pick_mmap_layout(struct mm_struct *mm)
 		mm->unmap_area = arch_unmap_area;
 	} else {
 		mm->mmap_base = mmap_base(mm);
+#ifdef MM_STRUCT_DEBUG
+	if(mm->mm_struct_debug == MM_STRUCT_DEBUG_TAG)
+		printk(KERN_ERR "tom mmap_base=%x\n",mm->mmap_base);
+#endif
 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
 		mm->unmap_area = arch_unmap_area_topdown;
 	}

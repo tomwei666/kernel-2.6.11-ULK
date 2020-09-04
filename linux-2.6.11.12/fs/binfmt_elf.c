@@ -297,8 +297,11 @@ static unsigned long elf_map(struct file *filep, unsigned long addr,
 
 	down_write(&current->mm->mmap_sem);
 #ifdef LOAD_ELF_BINARY_DEBUG
-	if(filep->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+	if(filep->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG) {
 		printk(KERN_ERR "tom F=%s p_filesz=%x %x %x\n",__FUNCTION__,eppnt->p_filesz,eppnt->p_vaddr,eppnt->p_offset);
+		/*printk(KERN_ERR "tom addr=%x %x\n",addr,ELF_PAGESTART(addr));*/
+		printk(KERN_ERR "tom addr=%x %x\n",addr,ELF_PAGESTART(addr));
+	}
 #endif
 	map_addr = do_mmap(filep, ELF_PAGESTART(addr),
 			   eppnt->p_filesz + ELF_PAGEOFFSET(eppnt->p_vaddr), prot, type,
@@ -391,6 +394,11 @@ static unsigned long load_elf_interp(struct elfhdr * interp_elf_ex,
 
 	    if (!load_addr_set && interp_elf_ex->e_type == ET_DYN) {
 		load_addr = map_addr - ELF_PAGESTART(vaddr);
+#ifdef LOAD_ELF_BINARY_DEBUG
+		if(interpreter->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d load_addr=%x vaddr=%x map_addr=%x\n"\
+				,__FUNCTION__,__LINE__,load_addr,vaddr,map_addr);
+#endif
 		load_addr_set = 1;
 	    }
 
@@ -876,13 +884,28 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 	 * current->mm->unmap_area
 	 * 
 	 */
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if (!strncmp(bprm->filename,DEBUG_FILE_NAME,sizeof(DEBUG_FILE_NAME)))
+	{
+		current->mm->mm_struct_debug == MM_STRUCT_DEBUG_TAG;
+	}
+#endif
 	arch_pick_mmap_layout(current->mm);
 
 	/* Do this so that we can load the interpreter, if need be.  We will
 	   change some of these later */
 	current->mm->rss = 0;
 	current->mm->free_area_cache = current->mm->mmap_base;
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if (!strncmp(bprm->filename,DEBUG_FILE_NAME,sizeof(DEBUG_FILE_NAME)))
+		printk(KERN_ERR "tom F=%s L=%d free_area_cache=%x\n",__FUNCTION__,__LINE__,current->mm->free_area_cache);
+#endif
 	retval = setup_arg_pages(bprm, STACK_TOP, executable_stack);
+
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if (!strncmp(bprm->filename,DEBUG_FILE_NAME,sizeof(DEBUG_FILE_NAME)))
+		printk(KERN_ERR "tom F=%s L=%d free_area_cache=%x\n",__FUNCTION__,__LINE__,current->mm->free_area_cache);
+#endif
 	if (retval < 0) {
 		send_sig(SIGKILL, current, 0);
 		goto out_free_dentry;

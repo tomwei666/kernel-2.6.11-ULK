@@ -923,6 +923,13 @@ unsigned long do_mmap_pgoff(struct file * file, unsigned long addr,
 	}
 #endif
 	addr = get_unmapped_area(file, addr, len, pgoff, flags);
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(file){
+		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d addr=%x\n",\
+				__FUNCTION__,__LINE__,addr);
+	}
+#endif
 	if (addr & ~PAGE_MASK)
 		return addr;
 
@@ -1233,14 +1240,35 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
 	unsigned long base = mm->mmap_base, addr = addr0;
 	int first_time = 1;
 
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(filp){
+		if(filp->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d addr0=%x len=%x pgoff=%x\n",\
+				__FUNCTION__,__LINE__,addr,len,pgoff);
+	}
+#endif
 	/* requested length too big for entire address space */
 	if (len > TASK_SIZE)
 		return -ENOMEM;
 
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(filp){
+		if(filp->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d cache=%x base=%x\n",\
+				__FUNCTION__,__LINE__,mm->free_area_cache,base);
+	}
+#endif
 	/* dont allow allocations above current base */
 	if (mm->free_area_cache > base)
 		mm->free_area_cache = base;
 
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(filp){
+		if(filp->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d cache=%x base=%x\n",\
+				__FUNCTION__,__LINE__,mm->free_area_cache,base);
+	}
+#endif
 	/* requesting a specific address */
 	if (addr) {
 		addr = PAGE_ALIGN(addr);
@@ -1249,6 +1277,14 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
 				(!vma || addr + len <= vma->vm_start))
 			return addr;
 	}
+
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(filp){
+		if(filp->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d \n",\
+				__FUNCTION__,__LINE__);
+	}
+#endif
 
 try_again:
 	/* make sure it can fit in the remaining address space */
@@ -1263,23 +1299,69 @@ try_again:
 		 * i.e. return with success:
 		 */
  	 	if (!(vma = find_vma_prev(mm, addr, &prev_vma)))
+		{
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(filp){
+		if(filp->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d \n",\
+				__FUNCTION__,__LINE__);
+	}
+#endif
 			return addr;
+		}
+		else {
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(filp){
+		if(filp->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d start=%x end=%x\n",\
+				__FUNCTION__,__LINE__,vma->vm_start,vma->vm_end);
+	}
+#endif
+		}
+
 
 		/*
 		 * new region fits between prev_vma->vm_end and
 		 * vma->vm_start, use it:
 		 */
+
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(filp){
+		if(filp->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d \n",\
+				__FUNCTION__,__LINE__);
+	}
+#endif
 		if (addr+len <= vma->vm_start &&
 				(!prev_vma || (addr >= prev_vma->vm_end)))
 			/* remember the address as a hint for next time */
+		{
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(filp){
+		if(filp->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d \n",\
+				__FUNCTION__,__LINE__);
+	}
+#endif
 			return (mm->free_area_cache = addr);
+		}
 		else
 			/* pull free_area_cache down to the first hole */
 			if (mm->free_area_cache == vma->vm_end)
 				mm->free_area_cache = vma->vm_start;
 
 		/* try just below the current vma->vm_start */
+		{
 		addr = vma->vm_start-len;
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(filp){
+		if(filp->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d \n",\
+				__FUNCTION__,__LINE__);
+	}
+#endif
+		}
+
 	} while (len <= vma->vm_start);
 
 fail:
@@ -1324,18 +1406,55 @@ get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
 {
 	unsigned long ret;
 
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(file){
+		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d addr=%x len=%x\n",\
+				__FUNCTION__,__LINE__,addr,len);
+	}
+#endif
 
 	if (!(flags & MAP_FIXED)) {
 		unsigned long (*get_area)(struct file *, unsigned long, unsigned long, unsigned long, unsigned long);
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(file){
+		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d addr=%x len=%x\n",\
+				__FUNCTION__,__LINE__,addr,len);
+	}
+#endif
 
 		get_area = current->mm->get_unmapped_area;
 		if (file && file->f_op && file->f_op->get_unmapped_area)
+		{
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(file){
+		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d addr=%x len=%x\n",\
+				__FUNCTION__,__LINE__,addr,len);
+	}
+#endif
 			get_area = file->f_op->get_unmapped_area;
+		}
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(file){
+		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d addr=%x len=%x\n",\
+				__FUNCTION__,__LINE__,addr,len);
+	}
+#endif
 		addr = get_area(file, addr, len, pgoff, flags);
 		if (IS_ERR_VALUE(addr))
 			return addr;
 	}
 
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(file){
+		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d addr=%x len=%x\n",\
+				__FUNCTION__,__LINE__,addr,len);
+	}
+#endif
 	if (addr > TASK_SIZE - len)
 		return -ENOMEM;
 	if (addr & ~PAGE_MASK)
@@ -1345,6 +1464,13 @@ get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
 		 * Check if the given range is hugepage aligned, and
 		 * can be made suitable for hugepages.
 		 */
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(file){
+		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d addr=%x len=%x\n",\
+				__FUNCTION__,__LINE__,addr,len);
+	}
+#endif
 		ret = prepare_hugepage_range(addr, len);
 	} else {
 		/*
@@ -1352,23 +1478,30 @@ get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
 		 * reserved hugepage range.  For some archs like IA-64,
 		 * there is a separate region for hugepages.
 		 */
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(file){
+		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d addr=%x len=%x\n",\
+				__FUNCTION__,__LINE__,addr,len);
+	}
+#endif
 		ret = is_hugepage_only_range(addr, len);
 	}
 	if (ret)
 		return -EINVAL;
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if(file){
+		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
+			printk(KERN_ERR "tom F=%s L=%d addr=%x len=%x\n",\
+				__FUNCTION__,__LINE__,addr,len);
+	}
+#endif
 	return addr;
 }
 
 EXPORT_SYMBOL(get_unmapped_area);
 
 /* Look up the first VMA which satisfies  addr < vm_end,  NULL if none. */
-/*
- * 作用：就是把addr可能在的VMA空间返回。
- *       例子，addr=43，有四个VMA:20-35,40-45,50-55,60-65,则返回40-45这个VMA.
- *       并把40-45的VMA赋值给mm->mmap_cache，以便下次使用。 
- *  注意: addr和VMA->vm_start和VMA->vm_end.
- */
-
 struct vm_area_struct * find_vma(struct mm_struct * mm, unsigned long addr)
 {
 	struct vm_area_struct *vma = NULL;
@@ -1407,20 +1540,6 @@ struct vm_area_struct * find_vma(struct mm_struct * mm, unsigned long addr)
 EXPORT_SYMBOL(find_vma);
 
 /* Same as find_vma, but also return a pointer to the previous VMA in *pprev. */
-/*
- * 作用：就是把addr可能在的节点返回，并把节点前一个节点返回。
- *       例子，addr=43，有四个节点:20-35,40-45,50-55,60-65,则返回40-45节点，并把
- *       20-35节点赋值pprev。
- *
- * 步骤：轮询红黑书的节点，直到addr>vma_tmp->vm_end,比如20-35，40-45，50-55，60-65
- *       addr=43,则会43>35,则prev=vma_tmp=20-35，这个节点，
- *       prev->vm_next节点是40-45,难道连表的节点也是按照从小到大的顺序？
- *       同时比较addr是否小于prev->vm_next->vm_end.
- *       也就是 prev->vm_end < addr < prev->vm_next->vm_end
- *       返回，prev->vm_next,同时把prev给pprev。
- *
- * 注意： 这个函数并没有把addr和VMA->vm_end作比较。
- */
 struct vm_area_struct *
 find_vma_prev(struct mm_struct *mm, unsigned long addr,
 			struct vm_area_struct **pprev)
@@ -2053,12 +2172,6 @@ void exit_mmap(struct mm_struct *mm)
  * and into the inode's i_mmap tree.  If vm_file is non-NULL
  * then i_mmap_lock is taken here.
  */
-/*
- * 作用：把VMA插入到mm中的VMA红黑树。
- *       1)通过find_vma_prepare，找到VMA在红黑树的prev,rb_link,rb_parent。
- *       2)vma_link通过VMA,prev,rb_link,rb_parent,把VMA插入到红黑树中。
- */
-
 int insert_vm_struct(struct mm_struct * mm, struct vm_area_struct * vma)
 {
 	struct vm_area_struct * __vma, * prev;

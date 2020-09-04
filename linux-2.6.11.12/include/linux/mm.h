@@ -748,6 +748,7 @@ static inline unsigned long do_mmap(struct file *file, unsigned long addr,
 		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
 			printk(KERN_ERR "tom F=%s L=%x addr=%x len=%x\n",__FUNCTION__,\
 				__LINE__,addr,len);
+			printk(KERN_ERR "tom %x %x %x\n",prot,flag,offset>>PAGE_SHIFT);
 	}
 #endif
 		ret = do_mmap_pgoff(file, addr, len, prot, flag, offset >> PAGE_SHIFT);
