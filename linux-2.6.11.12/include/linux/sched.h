@@ -1173,6 +1173,7 @@ extern void arch_pick_mmap_layout(struct mm_struct *mm);
 #else
 static inline void arch_pick_mmap_layout(struct mm_struct *mm)
 {
+	printk(KERN_ERR "tom F=%s L=%d\n",__FUNCTION__,__LINE__);
 	mm->mmap_base = TASK_UNMAPPED_BASE;
 	mm->get_unmapped_area = arch_get_unmapped_area;
 	mm->unmap_area = arch_unmap_area;

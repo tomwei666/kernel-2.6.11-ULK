@@ -301,6 +301,7 @@ static unsigned long elf_map(struct file *filep, unsigned long addr,
 		printk(KERN_ERR "tom F=%s p_filesz=%x %x %x\n",__FUNCTION__,eppnt->p_filesz,eppnt->p_vaddr,eppnt->p_offset);
 		/*printk(KERN_ERR "tom addr=%x %x\n",addr,ELF_PAGESTART(addr));*/
 		printk(KERN_ERR "tom addr=%x %x\n",addr,ELF_PAGESTART(addr));
+		print_mm_vma_rb(&current->mm->mm_rb);
 	}
 #endif
 	map_addr = do_mmap(filep, ELF_PAGESTART(addr),
@@ -386,6 +387,7 @@ static unsigned long load_elf_interp(struct elfhdr * interp_elf_ex,
 		if(interpreter->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
 			printk(KERN_ERR "tom F=%s L=%d load_addr=%x vaddr=%x load_addr+vaddr=%x\n"\
 				,__FUNCTION__,__LINE__,load_addr,vaddr,load_addr+vaddr);
+		print_mm_vma_rb(&current->mm->mm_rb);
 #endif
 	    map_addr = elf_map(interpreter, load_addr + vaddr, eppnt, elf_prot, elf_type);
 	    error = map_addr;
@@ -886,9 +888,7 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 	 */
 #ifdef LOAD_ELF_BINARY_DEBUG
 	if (!strncmp(bprm->filename,DEBUG_FILE_NAME,sizeof(DEBUG_FILE_NAME)))
-	{
-		current->mm->mm_struct_debug == MM_STRUCT_DEBUG_TAG;
-	}
+		current->mm->mm_struct_debug = MM_STRUCT_DEBUG_TAG;
 #endif
 	arch_pick_mmap_layout(current->mm);
 
@@ -901,11 +901,6 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 		printk(KERN_ERR "tom F=%s L=%d free_area_cache=%x\n",__FUNCTION__,__LINE__,current->mm->free_area_cache);
 #endif
 	retval = setup_arg_pages(bprm, STACK_TOP, executable_stack);
-
-#ifdef LOAD_ELF_BINARY_DEBUG
-	if (!strncmp(bprm->filename,DEBUG_FILE_NAME,sizeof(DEBUG_FILE_NAME)))
-		printk(KERN_ERR "tom F=%s L=%d free_area_cache=%x\n",__FUNCTION__,__LINE__,current->mm->free_area_cache);
-#endif
 	if (retval < 0) {
 		send_sig(SIGKILL, current, 0);
 		goto out_free_dentry;

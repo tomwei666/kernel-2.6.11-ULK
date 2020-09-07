@@ -748,7 +748,11 @@ static inline unsigned long do_mmap(struct file *file, unsigned long addr,
 		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
 			printk(KERN_ERR "tom F=%s L=%x addr=%x len=%x\n",__FUNCTION__,\
 				__LINE__,addr,len);
+		//print_mm_vma_rb();
+		//print_mm_vma_list(current->mm);
+		//print_mm_vma_list
 			printk(KERN_ERR "tom %x %x %x\n",prot,flag,offset>>PAGE_SHIFT);
+		print_mm_vma_rb(&current->mm->mm_rb);
 	}
 #endif
 		ret = do_mmap_pgoff(file, addr, len, prot, flag, offset >> PAGE_SHIFT);
@@ -799,6 +803,9 @@ extern int expand_stack(struct vm_area_struct * vma, unsigned long address);
 extern struct vm_area_struct * find_vma(struct mm_struct * mm, unsigned long addr);
 extern struct vm_area_struct * find_vma_prev(struct mm_struct * mm, unsigned long addr,
 					     struct vm_area_struct **pprev);
+
+extern void print_mm_vma_rb(struct rb_root *tree);
+extern void print_mm_vma_list(struct mm_struct *tree);
 
 /* Look up the first VMA which intersects the interval start_addr..end_addr-1,
    NULL if none.  Assume start_addr < end_addr. */

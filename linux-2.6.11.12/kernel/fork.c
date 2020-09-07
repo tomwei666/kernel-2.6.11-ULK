@@ -161,22 +161,6 @@ static struct task_struct *dup_task_struct(struct task_struct *orig)
 	return tsk;
 }
 
-/*
- * 作用：从进程的内存描述符(struct mm_struct)中的mm_rb轮询每个VMA节点，并打印VMA的地址
- * 输入:mm_struct中的mm_rb(struct rb_root)的地址
- */
-void print_mm_vma(struct rb_root *tree)
-{
-	struct rb_node *node;
-	struct vm_area_struct *tmp;
-
-	for (node = rb_first(tree); node; node = rb_next(node)) {
-		tmp = rb_entry(node, struct vm_area_struct, vm_rb);
-		printk(KERN_ERR "tom F=%s L=%d start=%x end=%x\n",__FUNCTION__,__LINE__,tmp->vm_start,tmp->vm_end);
-	}
-
-}
-
 
 #ifdef CONFIG_MMU
 static inline int dup_mmap(struct mm_struct * mm, struct mm_struct * oldmm)
@@ -204,7 +188,10 @@ static inline int dup_mmap(struct mm_struct * mm, struct mm_struct * oldmm)
 
 #ifdef MM_STRUCT_DEBUG
 	if(mm->mm_struct_debug == MM_STRUCT_DEBUG_TAG)
-		print_mm_vma(&oldmm->mm_rb);
+	{
+		printk(KERN_ERR "tom F=%s L=%d\n",__FUNCTION__,__LINE__);
+		print_mm_vma_rb(&mm->mm_rb);
+	}
 #endif
 
 	for (mpnt = current->mm->mmap ; mpnt ; mpnt = mpnt->vm_next) {
@@ -274,6 +261,14 @@ static inline int dup_mmap(struct mm_struct * mm, struct mm_struct * oldmm)
 		if (retval)
 			goto out;
 	}
+
+#ifdef MM_STRUCT_DEBUG
+	if(mm->mm_struct_debug == MM_STRUCT_DEBUG_TAG)
+	{
+		printk(KERN_ERR "tom F=%s L=%d\n",__FUNCTION__,__LINE__);
+		print_mm_vma_rb(&mm->mm_rb);
+	}
+#endif
 	retval = 0;
 
 out:
@@ -496,6 +491,8 @@ static int copy_mm(unsigned long clone_flags, struct task_struct * tsk)
 	if( (tsk->pid==APP_FIRST_PID) || (tsk->pid==(APP_FIRST_PID+1)))
 	{
 		mm->mm_struct_debug=MM_STRUCT_DEBUG_TAG;
+		printk(KERN_ERR "tom F=%s L=%d\n",__FUNCTION__,__LINE__);
+		print_mm_vma_rb(&current->mm->mm_rb);
 	}
 	retval = dup_mmap(mm, oldmm);
 	if (retval)

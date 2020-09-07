@@ -294,6 +294,35 @@ void validate_mm(struct mm_struct *mm)
 #define validate_mm(mm) do { } while (0)
 #endif
 
+/*
+ * 作用：从进程的内存描述符(struct mm_struct)中的mm_rb轮询每个VMA节点，并打印VMA的地址
+ * 输入:mm_struct中的mm_rb(struct rb_root)的地址
+ */
+void print_mm_vma_rb(struct rb_root *tree)
+{
+	struct rb_node *node;
+	struct vm_area_struct *tmp;
+
+	for (node = rb_first(tree); node; node = rb_next(node)) {
+		tmp = rb_entry(node, struct vm_area_struct, vm_rb);
+		printk(KERN_ERR "tom F=%s L=%d start=%x end=%x\n",__FUNCTION__,__LINE__,tmp->vm_start,tmp->vm_end);
+	}
+
+}
+EXPORT_SYMBOL(print_mm_vma_rb);
+
+/*
+ * 作用：从进程的内存描述符(struct mm_struct)中的mm_rb轮询每个VMA节点，并打印VMA的地址
+ * 输入:mm_struct中的mm_rb(struct rb_root)的地址
+ */
+void print_mm_vma_list(struct mm_struct *mm)
+{
+	struct vm_area_struct *mpnt;
+	for (mpnt = mm->mmap ; mpnt ; mpnt = mpnt->vm_next)
+		printk(KERN_ERR "tom F=%s L=%d start=%x end=%x\n",__FUNCTION__,__LINE__,mpnt->vm_start,mpnt->vm_end);
+}
+EXPORT_SYMBOL(print_mm_vma_list);
+
 static struct vm_area_struct *
 find_vma_prepare(struct mm_struct *mm, unsigned long addr,
 		struct vm_area_struct **pprev, struct rb_node ***rb_link,
@@ -920,6 +949,7 @@ unsigned long do_mmap_pgoff(struct file * file, unsigned long addr,
 		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
 			printk(KERN_ERR "tom F=%s L=%d addr=%x len=%x\n",\
 				__FUNCTION__,__LINE__,addr,len);
+		print_mm_vma_rb(&current->mm->mm_rb);
 	}
 #endif
 	addr = get_unmapped_area(file, addr, len, pgoff, flags);
@@ -1245,6 +1275,9 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
 		if(filp->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
 			printk(KERN_ERR "tom F=%s L=%d addr0=%x len=%x pgoff=%x\n",\
 				__FUNCTION__,__LINE__,addr,len,pgoff);
+		print_mm_vma_rb(&mm->mm_rb);
+		print_mm_vma_list(mm);
+		/*print_mm_vma_rb(&current->mm->mm_rb);*/
 	}
 #endif
 	/* requested length too big for entire address space */
@@ -1283,6 +1316,9 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
 		if(filp->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
 			printk(KERN_ERR "tom F=%s L=%d \n",\
 				__FUNCTION__,__LINE__);
+		print_mm_vma_rb(&mm->mm_rb);
+		print_mm_vma_list(mm);
+
 	}
 #endif
 
@@ -1411,6 +1447,7 @@ get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
 		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
 			printk(KERN_ERR "tom F=%s L=%d addr=%x len=%x\n",\
 				__FUNCTION__,__LINE__,addr,len);
+		print_mm_vma_rb(&current->mm->mm_rb);
 	}
 #endif
 
