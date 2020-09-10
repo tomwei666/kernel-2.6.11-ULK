@@ -368,6 +368,29 @@ out_sig:
 
 #define EXTRA_STACK_VM_PAGES	20	/* random */
 
+/*  setup_arg_pages函数注释。
+ *
+ */
+
+/*      ------------------------  <-------stack_top=0xC000 0000
+ *      | /////////////////////|  ---保存的环境参数。
+ *      |----------------------|  -------bprm->p=stack_base+0x1ff3e=0xbfff ff3e
+ *      |                      |
+ *      |                      |
+ *      ------------------------  <-------stack_base=0xbffe 0000
+ *      |                      |
+ *      |                      |
+ *      |                      |
+ *      ------------------------
+ *      bprm->p指向保存参数栈未使用的地址最高处。
+ *
+ *      arg_size大小：
+ *      1)已经保存环境参数: arg_size = stack_top - (PAGE_MASK & (unsigned long) mm->arg_start);
+ *      2)预留EXTRA_STACK_VM_PAGES=20个页大小空间： arg_size += EXTRA_STACK_VM_PAGES * PAGE_SIZE;
+ *
+ *      VMA的结束地址是: mpnt->vm_end = stack_top;                      //vma->vm_end   = 0xc0000000
+ *      VMA的开始地址是: mpnt->vm_start = mpnt->vm_end - arg_size;      //vma->vm_start = 0xbffeb000
+ */
 int setup_arg_pages(struct linux_binprm *bprm,
 		    unsigned long stack_top,
 		    int executable_stack)
