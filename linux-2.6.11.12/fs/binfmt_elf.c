@@ -524,7 +524,29 @@ out:
 #define DEBUG_FILE_NAME "/var/simpleSection"
 /*
  * 函数作用：
- * 
+ * 加载二进制文件/var/simpleSection,涉及到/lib/ld-linux.so.2.
+ *
+ * readelf -l /var/simpleSection
+ * Program Headers:
+ * Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+ * PHDR           0x000034 0x08048034 0x08048034 0x000e0 0x000e0 R E 0x4
+ * INTERP         0x000114 0x08048114 0x08048114 0x00013 0x00013 R   0x1
+ * [Requesting program interpreter: /lib/ld-linux.so.2]
+ * LOAD           0x000000 0x08048000 0x08048000 0x00484 0x00484 R E 0x1000
+ * LOAD           0x000484 0x08049484 0x08049484 0x0010c 0x00118 RW  0x1000
+ * DYNAMIC        0x000498 0x08049498 0x08049498 0x000c8 0x000c8 RW  0x4
+ * NOTE           0x000128 0x08048128 0x08048128 0x00020 0x00020 R   0x4
+ *
+ * readelf -l /lib/ld-linux.so.2
+ * Program Headers:
+ * Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+ * LOAD           0x000000 0x00000000 0x00000000 0x18714 0x18714 R E 0x1000
+ * LOAD           0x018cc0 0x00019cc0 0x00019cc0 0x00958 0x00a10 RW  0x1000
+ * DYNAMIC        0x018f28 0x00019f28 0x00019f28 0x000b0 0x000b0 RW  0x4
+ * GNU_EH_FRAME   0x018280 0x00018280 0x00018280 0x000f4 0x000f4 R   0x4
+ * GNU_STACK      0x000000 0x00000000 0x00000000 0x00000 0x00000 RW  0x4
+ * GNU_RELRO      0x018cc0 0x00019cc0 0x00019cc0 0x00320 0x00320 R   0x20
+ *
  */
 static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 {
@@ -650,7 +672,11 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 	 * 2) loc->interp_exc从bprm->buf读取32个字节并转换成struct exec类型。
 	 * 3) loc->interp_elf_ex读取52个字节并转换换成struct elfhdr类型。
 	 */
-
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if (!strncmp(bprm->filename,DEBUG_FILE_NAME,sizeof(DEBUG_FILE_NAME)))
+		interpreter-> load_elf_binary_debug = 1;
+#endif
+//-----------------------for begin
 	for (i = 0; i < loc->elf_ex.e_phnum; i++) {
 		if (elf_ppnt->p_type == PT_INTERP) {
 			/* This is the program interpreter used for
@@ -713,10 +739,6 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 
 			interpreter = open_exec(elf_interpreter);
 
-#ifdef LOAD_ELF_BINARY_DEBUG
-	if (!strncmp(bprm->filename,DEBUG_FILE_NAME,sizeof(DEBUG_FILE_NAME)))
-		interpreter-> load_elf_binary_debug = 1;
-#endif
 
 			retval = PTR_ERR(interpreter);
 			if (IS_ERR(interpreter))
@@ -783,6 +805,8 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 		}
 		elf_ppnt++;
 	}
+
+//-----------------------for end
 
 	/* 注释5：
 	 * elf_phdata保存是/var/simpleSection的Program header table内容。
@@ -896,43 +920,56 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 	   change some of these later */
 	current->mm->rss = 0;
 	current->mm->free_area_cache = current->mm->mmap_base;
-#ifdef LOAD_ELF_BINARY_DEBUG
-	if (!strncmp(bprm->filename,DEBUG_FILE_NAME,sizeof(DEBUG_FILE_NAME)))
-		printk(KERN_ERR "tom F=%s L=%d free_area_cache=%x\n",__FUNCTION__,__LINE__,current->mm->free_area_cache);
-#endif
+
+	/* 注释7：
+	 * 设置:保存环境参数，设置第一个VMA
+	 * 第1个VMA的 start=
+	 * 第1个VMA的 end
+	 * current->mm->unmap_area
+	 */
 	retval = setup_arg_pages(bprm, STACK_TOP, executable_stack);
+
+	/* 注释：
+	 * 设置:保存环境参数，设置第一个VMA
+	 * 第1个VMA的 start = 0xbffeb000
+	 * 第1个VMA的 end   = 0xc0000000
+	 * current->mm->unmap_area
+     *  ------------------------  <------------------stack_top=0xC000 0000------------vma_end    =0xc0000000
+     *  | /////////////////////|  ---保存的环境参数。
+     *  |----------------------|  -------bprm->p=stack_base+0x1ff3e=0xbfff ff3e
+     *  | 保留的空间           |  
+     *  |----------------------|  <----------------------------------------------------vma_start =0xbffeb000       
+     *  ------------------------  <-------bprm->p=stack_base=0xbffe 0000
+     *  |                      |
+     *  |                      |
+     *  |                      |
+     *  ------------------------
+     * bprm->p指向保存参数栈未使用的地址最高处。
+     */
+
 	if (retval < 0) {
 		send_sig(SIGKILL, current, 0);
 		goto out_free_dentry;
 	}
-
-/*      ------------------------  <------------------stack_top=0xC000 0000------------vma_end    =0xc0000000
- *      | /////////////////////|  ---保存的环境参数。
- *      |----------------------|  -------bprm->p=stack_base+0x1ff3e=0xbfff ff3e
- *      |                      |  <----------------------------------------------------vma_start =0xbffeb000
- *      |                      |
- *      ------------------------  <-------bprm->p=stack_base=0xbffe 0000
- *      |                      |
- *      |                      |
- *      |                      |
- *      ------------------------
- *      bprm->p指向保存参数栈未使用的地址最高处。
- *
- *      arg_size大小：
- *      1)已经保存环境参数: arg_size = stack_top - (PAGE_MASK & (unsigned long) mm->arg_start);
- *      2)预留EXTRA_STACK_VM_PAGES=20个页大小空间： arg_size += EXTRA_STACK_VM_PAGES * PAGE_SIZE;
- *
- *      VMA的结束地址是: mpnt->vm_end = stack_top;                      //vma->vm_end   = 0xc0000000
- *      VMA的开始地址是: mpnt->vm_start = mpnt->vm_end - arg_size;      //vma->vm_start = 0xbffeb000
- */
-	
 	current->mm->start_stack = bprm->p;
-
 	/* Now we do a little grungy work by mmaping the ELF image into
 	   the correct location in memory.  At this point, we assume that
 	   the image should be loaded at fixed address, not at a variable
 	   address. */
 
+	/* 注释：下面for循环是解析/var/simpleSection的所有program table,并把LOAD的table,并分配VMA
+     * readelf -l /var/simpleSection
+     * Program Headers:
+     * Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+     * LOAD           0x000000 0x08048000 0x08048000 0x00484 0x00484 R E 0x1000
+     * LOAD           0x000484 0x08049484 0x08049484 0x0010c 0x00118 RW  0x1000
+     * 
+	 * 因为是LOAD类型的table,则使用PhysAddr.
+	 *
+	 * VMA2:  start=0x8048000    end=0x8049000
+	 * VMA2:  start=0x8049000    end=0x804a000
+     */
+//-----------------------for begin
 	for(i = 0, elf_ppnt = elf_phdata; i < loc->elf_ex.e_phnum; i++, elf_ppnt++) {
 		int elf_prot = 0, elf_flags;
 		unsigned long k, vaddr;
@@ -1029,7 +1066,11 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 		if (k > elf_brk)
 			elf_brk = k;
 	}
+//-----------------------for end
 
+    /* 
+     * 注释：这一段应该和匿名页相关的，以后分析。
+    */
 	loc->elf_ex.e_entry += load_bias;
 	elf_bss += load_bias;
 	elf_brk += load_bias;
@@ -1053,7 +1094,19 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 		retval = -EFAULT; /* Nobody gets to see this, but.. */
 		goto out_free_dentry;
 	}
-
+    /* 注释：
+     * readelf -l /var/simpleSection
+     * Program Headers:
+     * Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+     * LOAD           0x000000 0x08048000 0x08048000 0x00484 0x00484 R E 0x1000
+     * LOAD           0x000484 0x08049484 0x08049484 0x0010c 0x00118 RW  0x1000
+     * 
+	 * 因为是LOAD类型的table,则使用PhysAddr.
+	 *
+	 * VMA2:  start=0x8048000    end=0x8049000
+	 * VMA3:  start=0x8049000    end=0x804a000
+     */
+	
 	if (elf_interpreter) {
 		if (interpreter_type == INTERPRETER_AOUT)
 			elf_entry = load_aout_interp(&loc->interp_ex,

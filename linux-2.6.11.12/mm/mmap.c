@@ -1275,8 +1275,8 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
 		if(filp->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
 			printk(KERN_ERR "tom F=%s L=%d addr0=%x len=%x pgoff=%x\n",\
 				__FUNCTION__,__LINE__,addr,len,pgoff);
-		print_mm_vma_rb(&mm->mm_rb);
-		print_mm_vma_list(mm);
+		/*print_mm_vma_rb(&mm->mm_rb);*/
+		/*print_mm_vma_list(mm);*/
 		/*print_mm_vma_rb(&current->mm->mm_rb);*/
 	}
 #endif
@@ -1316,8 +1316,8 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
 		if(filp->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
 			printk(KERN_ERR "tom F=%s L=%d \n",\
 				__FUNCTION__,__LINE__);
-		print_mm_vma_rb(&mm->mm_rb);
-		print_mm_vma_list(mm);
+		/*print_mm_vma_rb(&mm->mm_rb);*/
+		/*print_mm_vma_list(mm);*/
 
 	}
 #endif
@@ -1447,7 +1447,7 @@ get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
 		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
 			printk(KERN_ERR "tom F=%s L=%d addr=%x len=%x\n",\
 				__FUNCTION__,__LINE__,addr,len);
-		print_mm_vma_rb(&current->mm->mm_rb);
+		/*print_mm_vma_rb(&current->mm->mm_rb);*/
 	}
 #endif
 
