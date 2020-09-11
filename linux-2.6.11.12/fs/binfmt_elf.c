@@ -672,10 +672,7 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 	 * 2) loc->interp_exc从bprm->buf读取32个字节并转换成struct exec类型。
 	 * 3) loc->interp_elf_ex读取52个字节并转换换成struct elfhdr类型。
 	 */
-#ifdef LOAD_ELF_BINARY_DEBUG
-	if (!strncmp(bprm->filename,DEBUG_FILE_NAME,sizeof(DEBUG_FILE_NAME)))
-		interpreter-> load_elf_binary_debug = 1;
-#endif
+
 //-----------------------for begin
 	for (i = 0; i < loc->elf_ex.e_phnum; i++) {
 		if (elf_ppnt->p_type == PT_INTERP) {
@@ -738,8 +735,6 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 			SET_PERSONALITY(loc->elf_ex, ibcs2_interpreter);
 
 			interpreter = open_exec(elf_interpreter);
-
-
 			retval = PTR_ERR(interpreter);
 			if (IS_ERR(interpreter))
 				goto out_free_interp;
@@ -750,6 +745,10 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 				goto out_free_dentry;
 			}
 
+#ifdef LOAD_ELF_BINARY_DEBUG
+	if (!strncmp(bprm->filename,DEBUG_FILE_NAME,sizeof(DEBUG_FILE_NAME)))
+		interpreter-> load_elf_binary_debug = 1;
+#endif
 			/* Get the exec headers */
 			/* 注释4：
 			 * /lib/ld-linux.so.2的内容如下：
