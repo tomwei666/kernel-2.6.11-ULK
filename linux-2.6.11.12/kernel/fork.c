@@ -189,8 +189,8 @@ static inline int dup_mmap(struct mm_struct * mm, struct mm_struct * oldmm)
 #ifdef MM_STRUCT_DEBUG
 	if(mm->mm_struct_debug == MM_STRUCT_DEBUG_TAG)
 	{
-		printk(KERN_ERR "tom F=%s L=%d\n",__FUNCTION__,__LINE__);
-		print_mm_vma_rb(&mm->mm_rb);
+		/*printk(KERN_ERR "tom F=%s L=%d\n",__FUNCTION__,__LINE__);*/
+		/*print_mm_vma_rb(&mm->mm_rb);*/
 	}
 #endif
 
@@ -262,13 +262,13 @@ static inline int dup_mmap(struct mm_struct * mm, struct mm_struct * oldmm)
 			goto out;
 	}
 
-#ifdef MM_STRUCT_DEBUG
-	if(mm->mm_struct_debug == MM_STRUCT_DEBUG_TAG)
-	{
-		printk(KERN_ERR "tom F=%s L=%d\n",__FUNCTION__,__LINE__);
-		print_mm_vma_rb(&mm->mm_rb);
-	}
-#endif
+/*#ifdef MM_STRUCT_DEBUG*/
+	/*if(mm->mm_struct_debug == MM_STRUCT_DEBUG_TAG)*/
+	/*{*/
+		/*printk(KERN_ERR "tom F=%s L=%d\n",__FUNCTION__,__LINE__);*/
+		/*print_mm_vma_rb(&mm->mm_rb);*/
+	/*}*/
+/*#endif*/
 	retval = 0;
 
 out:
@@ -491,8 +491,8 @@ static int copy_mm(unsigned long clone_flags, struct task_struct * tsk)
 	if( (tsk->pid==APP_FIRST_PID) || (tsk->pid==(APP_FIRST_PID+1)))
 	{
 		mm->mm_struct_debug=MM_STRUCT_DEBUG_TAG;
-		printk(KERN_ERR "tom F=%s L=%d\n",__FUNCTION__,__LINE__);
-		print_mm_vma_rb(&current->mm->mm_rb);
+		/*printk(KERN_ERR "tom F=%s L=%d\n",__FUNCTION__,__LINE__);*/
+		/*print_mm_vma_rb(&current->mm->mm_rb);*/
 	}
 	retval = dup_mmap(mm, oldmm);
 	if (retval)

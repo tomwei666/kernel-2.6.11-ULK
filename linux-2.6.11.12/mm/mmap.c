@@ -944,22 +944,22 @@ unsigned long do_mmap_pgoff(struct file * file, unsigned long addr,
 	/* Obtain the address to map to. we verify (or select) it and ensure
 	 * that it represents a valid section of the address space.
 	 */
-#ifdef LOAD_ELF_BINARY_DEBUG
-	if(file){
-		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
-			printk(KERN_ERR "tom F=%s L=%d addr=%x len=%x\n",\
-				__FUNCTION__,__LINE__,addr,len);
-		print_mm_vma_rb(&current->mm->mm_rb);
-	}
-#endif
+/*#ifdef LOAD_ELF_BINARY_DEBUG*/
+	/*if(file){*/
+		/*if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)*/
+			/*printk(KERN_ERR "tom F=%s L=%d addr=%x len=%x\n",\*/
+				/*__FUNCTION__,__LINE__,addr,len);*/
+		/*print_mm_vma_rb(&current->mm->mm_rb);*/
+	/*}*/
+/*#endif*/
 	addr = get_unmapped_area(file, addr, len, pgoff, flags);
-#ifdef LOAD_ELF_BINARY_DEBUG
-	if(file){
-		if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
-			printk(KERN_ERR "tom F=%s L=%d addr=%x\n",\
-				__FUNCTION__,__LINE__,addr);
-	}
-#endif
+/*#ifdef LOAD_ELF_BINARY_DEBUG*/
+	/*if(file){*/
+		/*if(file->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)*/
+			/*printk(KERN_ERR "tom F=%s L=%d addr=%x\n",\*/
+				/*__FUNCTION__,__LINE__,addr);*/
+	/*}*/
+/*#endif*/
 	if (addr & ~PAGE_MASK)
 		return addr;
 

@@ -298,10 +298,10 @@ static unsigned long elf_map(struct file *filep, unsigned long addr,
 	down_write(&current->mm->mmap_sem);
 #ifdef LOAD_ELF_BINARY_DEBUG
 	if(filep->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG) {
-		printk(KERN_ERR "tom F=%s p_filesz=%x %x %x\n",__FUNCTION__,eppnt->p_filesz,eppnt->p_vaddr,eppnt->p_offset);
+		/*printk(KERN_ERR "tom F=%s p_filesz=%x %x %x\n",__FUNCTION__,eppnt->p_filesz,eppnt->p_vaddr,eppnt->p_offset);*/
 		/*printk(KERN_ERR "tom addr=%x %x\n",addr,ELF_PAGESTART(addr));*/
-		printk(KERN_ERR "tom addr=%x %x\n",addr,ELF_PAGESTART(addr));
-		print_mm_vma_rb(&current->mm->mm_rb);
+		/*printk(KERN_ERR "tom addr=%x %x\n",addr,ELF_PAGESTART(addr));*/
+		/*print_mm_vma_rb(&current->mm->mm_rb);*/
 	}
 #endif
 	map_addr = do_mmap(filep, ELF_PAGESTART(addr),
@@ -383,12 +383,12 @@ static unsigned long load_elf_interp(struct elfhdr * interp_elf_ex,
 	    if (interp_elf_ex->e_type == ET_EXEC || load_addr_set)
 	    	elf_type |= MAP_FIXED;
 
-#ifdef LOAD_ELF_BINARY_DEBUG
-		if(interpreter->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
-			printk(KERN_ERR "tom F=%s L=%d load_addr=%x vaddr=%x load_addr+vaddr=%x\n"\
-				,__FUNCTION__,__LINE__,load_addr,vaddr,load_addr+vaddr);
-		print_mm_vma_rb(&current->mm->mm_rb);
-#endif
+/*#ifdef LOAD_ELF_BINARY_DEBUG*/
+		/*if(interpreter->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)*/
+			/*printk(KERN_ERR "tom F=%s L=%d load_addr=%x vaddr=%x load_addr+vaddr=%x\n"\*/
+				/*,__FUNCTION__,__LINE__,load_addr,vaddr,load_addr+vaddr);*/
+		/*print_mm_vma_rb(&current->mm->mm_rb);*/
+/*#endif*/
 	    map_addr = elf_map(interpreter, load_addr + vaddr, eppnt, elf_prot, elf_type);
 	    error = map_addr;
 	    if (BAD_ADDR(map_addr))
@@ -396,11 +396,11 @@ static unsigned long load_elf_interp(struct elfhdr * interp_elf_ex,
 
 	    if (!load_addr_set && interp_elf_ex->e_type == ET_DYN) {
 		load_addr = map_addr - ELF_PAGESTART(vaddr);
-#ifdef LOAD_ELF_BINARY_DEBUG
-		if(interpreter->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)
-			printk(KERN_ERR "tom F=%s L=%d load_addr=%x vaddr=%x map_addr=%x\n"\
-				,__FUNCTION__,__LINE__,load_addr,vaddr,map_addr);
-#endif
+/*#ifdef LOAD_ELF_BINARY_DEBUG*/
+		/*if(interpreter->load_elf_binary_debug == LOAD_ELF_BINARY_DEBUG_TAG)*/
+			/*printk(KERN_ERR "tom F=%s L=%d load_addr=%x vaddr=%x map_addr=%x\n"\*/
+				/*,__FUNCTION__,__LINE__,load_addr,vaddr,map_addr);*/
+/*#endif*/
 		load_addr_set = 1;
 	    }
 
