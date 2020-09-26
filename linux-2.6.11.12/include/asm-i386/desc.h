@@ -33,6 +33,16 @@ extern struct Xgt_desc_struct idt_descr, cpu_gdt_descr[NR_CPUS];
 extern struct desc_struct default_ldt[];
 extern void set_intr_gate(unsigned int irq, void * addr);
 
+/*   addr=0xc1fb2060 limit=0x2074 type=0x89 n[63:0]*/
+/*  movw %w3,0(%2)   ==>  n[15:00]=limit         */
+/*  movw %ax,2(%2)   ==>  n[31:16]=addr[15:00]=0x2060   */
+/*  rorl $16,%%eax   ==>  交换eax的高低16位，之前eax=0xc1fb2060,交换后eax=0x2060 c1fb */
+/*  movb %%al,4(%2)  ==>  n[39:32]=0xfb */
+/*  movb %4,5(%2)    ==>  n[47:40]=type=0x89 */
+/*  movb $0,6(%2)    ==>  n[55:48]=0*/
+/*  movb %%ah,7(%2)  ==>  n[63:56]=0xc1*/
+/*  rorl $16,%%eax   ==>  交换eax的高低16位，之前eax=0x2060 c1fb,交换后eax=0xc1fb2060*/
+
 #define _set_tssldt_desc(n,addr,limit,type) \
 __asm__ __volatile__ ("movw %w3,0(%2)\n\t" \
 	"movw %%ax,2(%2)\n\t" \
