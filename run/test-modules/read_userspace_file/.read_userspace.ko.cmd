@@ -1,0 +1,1 @@
+cmd_/home/tom/work/kernel-2.6.11-ULK/run/test/read_userspace_file/read_userspace.ko := ld -m elf_i386 -r -o /home/tom/work/kernel-2.6.11-ULK/run/test/read_userspace_file/read_userspace.ko /home/tom/work/kernel-2.6.11-ULK/run/test/read_userspace_file/read_userspace.o /home/tom/work/kernel-2.6.11-ULK/run/test/read_userspace_file/read_userspace.mod.o
