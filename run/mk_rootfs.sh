@@ -12,7 +12,7 @@ sudo mkdir -p rootfs/var/
 sudo mkdir -p rootfs/mnt/
 sudo cp ext/* rootfs/var/
 sudo cp etc rootfs/ -arf
-sudo cp test/* rootfs/var/
+sudo cp test/out/* rootfs/var/
 sudo mkdir -p rootfs/lib
 #sudo cp -arf /lib/* rootfs/lib/
 sudo cp -arf /lib/lib* rootfs/lib/

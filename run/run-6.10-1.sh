@@ -1,1 +1,0 @@
-sudo /home/tom/qemu/qemu-stable-0.13/i386-softmmu/qemu  -smp 2  -m 2000M  -kernel /home/tom/work/kernel-2.6.11-ULK/out/arch/i386/boot/bzImage  -nographic -append "root=/dev/ram1 rw rootfstype=ext3 console=ttyS0 init=/linuxrc" -initrd /home/tom/kernel1/kernel1/ramdisk
