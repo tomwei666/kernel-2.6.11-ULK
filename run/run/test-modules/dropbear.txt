@@ -1,0 +1,1 @@
+./configure --prefix=/home/tom/work/kernel-2.6.11-ULK/run/test-modules/dropbear-bin  --with-zlib=/home/tom/work/kernel-2.6.11-ULK/run/test-modules/zlib-install –sysconfdir=/home/tom/work/kernel-2.6.11-ULK/run/test-modules/dropbear-bin

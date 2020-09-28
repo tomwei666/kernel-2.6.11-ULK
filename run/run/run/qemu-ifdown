@@ -1,0 +1,10 @@
+witch=br0 
+if [ -n "$1" ]; then 
+	#	sudo tunctl -d $1 
+	sudo brctl delif $switch $1
+	sudo brctl delbr $switch
+	sudo ifconfig $1 down
+else
+	echo "error: no interface specified" 
+	exit 1 
+fi
