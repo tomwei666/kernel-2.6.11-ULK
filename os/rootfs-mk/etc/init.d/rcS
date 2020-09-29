@@ -16,6 +16,16 @@ mdev -s
 mkdir -p /var/lock
 
 ifconfig lo 127.0.0.1
-ifconfig eth0 192.168.1.20
+ifconfig eth0 192.168.137.133
+
+# Netwroking
+ifconfig eth0 up > /dev/null 2>&1
+ifconfig eth0 192.168.137.5
+route add default gw 192.168.137.1
+
+# start telnetd
+/usr/sbin/telnetd &
+
+
 
 /bin/hostname -F /etc/sysconfig/HOSTNAME
