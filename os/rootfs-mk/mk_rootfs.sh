@@ -22,7 +22,7 @@ sudo cp -arf /lib/ld* rootfs/lib/
 # Add zlib
 sudo cp -arf  ext/zlib/lib/lib* rootfs/lib/
 # Add dropbear bin
-sudo cp -arf  ext/dropbear/bin/* rootfs/bin/
+sudo cp -arf  ext/dropbear/bin/* rootfs/usr/bin
 
 sudo cp -arf  ext/zlib/lib/lib* rootfs/lib/
 
