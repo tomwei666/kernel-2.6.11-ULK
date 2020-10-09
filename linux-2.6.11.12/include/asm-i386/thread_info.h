@@ -92,8 +92,48 @@ static inline struct thread_info *current_thread_info(void)
 	return ti;
 }
 
+
+
+/* how to get  from C */
+static unsigned long esp_info(void)
+{
+	unsigned long esp;
+	__asm__("movl %%esp,%0; ":"=m" (esp));
+	return esp;
+}
+
 /* how to get the current stack pointer from C */
 register unsigned long current_stack_pointer asm("esp") __attribute_used__;
+
+/* how to get kernel thread stack bottom */
+static inline unsigned long get_stack_bottom(void)
+{
+	unsigned long stack_bottom;
+	stack_bottom = esp_info() & (~(THREAD_SIZE - 1));
+	stack_bottom = stack_bottom + (THREAD_SIZE - 1);
+	/* 地址是4个字节对齐 */
+	stack_bottom &= 0xFFFFFFFC;
+	return stack_bottom;
+}
+
+static inline unsigned long dump_kernel_stack(void)
+{
+	unsigned long esp;
+	unsigned long *esp_p;
+	unsigned long stack_bottom;
+
+	stack_bottom = get_stack_bottom();
+	esp =  esp_info();
+	printk(KERN_ERR "esp=%x stack_bottom=%x L=%d\n",esp,stack_bottom,__LINE__);
+
+	/* esp指向的地方,是即将压内容的地址 */
+	esp += 4;
+
+	for(;esp<=stack_bottom;esp+=4,esp_p+=4) {
+		esp_p = esp;
+		printk(KERN_ERR "%x:%x\n",esp,*esp_p);
+	}
+}
 
 /* thread information allocation */
 #ifdef CONFIG_DEBUG_STACK_USAGE
