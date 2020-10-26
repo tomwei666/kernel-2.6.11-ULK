@@ -393,6 +393,17 @@ int fastcall schedule_work(struct work_struct *work)
 	return queue_work(keventd_wq, work);
 }
 
+int fastcall print_work_name(struct workqueue_struct *work)
+{
+	printk(KERN_ERR "tom F=%s %s\n",__FUNCTION__,work->name);
+	/*return queue_work(keventd_wq, work);*/
+}
+
+const char * fastcall work_name_return(struct workqueue_struct *work)
+{
+	return work->name;
+}
+
 int fastcall schedule_delayed_work(struct work_struct *work, unsigned long delay)
 {
 	return queue_delayed_work(keventd_wq, work, delay);
@@ -529,3 +540,5 @@ EXPORT_SYMBOL(schedule_work);
 EXPORT_SYMBOL(schedule_delayed_work);
 EXPORT_SYMBOL(schedule_delayed_work_on);
 EXPORT_SYMBOL(flush_scheduled_work);
+EXPORT_SYMBOL(print_work_name);
+EXPORT_SYMBOL(work_name_return);

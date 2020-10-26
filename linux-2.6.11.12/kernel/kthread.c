@@ -194,6 +194,10 @@ EXPORT_SYMBOL(kthread_stop);
 static __init int helper_init(void)
 {
 	helper_wq = create_singlethread_workqueue("kthread");
+	/*print_work_name(helper_wq);*/
+	/*const char * tmp;*/
+	/*tmp = work_name_return(helper_wq);*/
+	/*printk(KERN_ERR "tom F=%s name=%s\n",__FUNCTION__,tmp);*/
 	BUG_ON(!helper_wq);
 
 	return 0;
