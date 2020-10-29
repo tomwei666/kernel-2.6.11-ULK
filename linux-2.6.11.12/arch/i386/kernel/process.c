@@ -294,6 +294,7 @@ __asm__(".section .text\n"
 /*
  * Create a kernel thread
  */
+/*int kernel_thread_flag =0;*/
 int kernel_thread(int (*fn)(void *), void * arg, unsigned long flags)
 {
 	struct pt_regs regs;
@@ -309,6 +310,11 @@ int kernel_thread(int (*fn)(void *), void * arg, unsigned long flags)
 	regs.eip = (unsigned long) kernel_thread_helper;
 	regs.xcs = __KERNEL_CS;
 	regs.eflags = X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF | 0x2;
+
+	/*if (kernel_thread_flag == 0) {*/
+		/*printk(KERN_ERR "tom F=%s L=%x kernel_thread_helper=%x\n",__FUNCTION__,__FUNCTION__,kernel_thread_helper);*/
+		/*kernel_thread_flag = 1;*/
+	/*}*/
 
 	/* Ok, create the new process.. */
 	return do_fork(flags | CLONE_VM | CLONE_UNTRACED, 0, &regs, 0, NULL, NULL);
@@ -392,10 +398,23 @@ int copy_thread(int nr, unsigned long clone_flags, unsigned long esp,
 	childregs->eax = 0;
 	childregs->esp = esp;
 
+	tmp = ((struct pt_regs *) (THREAD_SIZE + (unsigned long) p->thread_info));
+	tmp1 = ((struct pt_regs *) (THREAD_SIZE + (unsigned long) p->thread_info))-1;
+
+
+
 	p->thread.esp = (unsigned long) childregs;
 	p->thread.esp0 = (unsigned long) (childregs+1);
-
 	p->thread.eip = (unsigned long) ret_from_fork;
+
+	/*if(p->pid == 5) {*/
+		/*unsigned long *tmp2;*/
+		/*tmp2 = p->thread.esp;*/
+		/*printk(KERN_ERR "tom %x : %x %x %x %x %x %x %x %x\n",tmp2,*tmp2,*(tmp2+1),*(tmp2+2),*(tmp2+3),*(tmp2+4),*(tmp2+5),*(tmp2+6),*(tmp2+7));*/
+		/*printk(KERN_ERR "tom %x : %x %x %x %x %x %x %x\n",tmp2+8,*(tmp2+8),*(tmp2+9),*(tmp2+10),*(tmp2+11),*(tmp2+12),*(tmp2+13),*(tmp2+14));*/
+		/*printk(KERN_ERR "tom   ebx-xds: %x %x %x %x %x %x %x %x\n",regs->ebx,regs->ecx,regs->edx,regs->esi,regs->edi,regs->ebp,regs->eax,regs->xds);*/
+		/*printk(KERN_ERR "tom   xes-xss: %x %x %x %x %x %x %x\n",regs->xes,regs->orig_eax,regs->eip,regs->xcs,regs->eflags,regs->esp,regs->xss);*/
+	/*}*/
 
 	savesegment(fs,p->thread.fs);
 	savesegment(gs,p->thread.gs);
@@ -622,6 +641,37 @@ struct task_struct fastcall * __switch_to(struct task_struct *prev_p, struct tas
 
 	if (unlikely(prev->io_bitmap_ptr || next->io_bitmap_ptr))
 		handle_io_bitmap(next, tss);
+
+	/*if(next_p->pid ==5) {*/
+		/*unsigned long *tmp2;*/
+		/*unsigned long esp;*/
+		/*unsigned long *esp_p;*/
+		/*printk(KERN_ERR "=======tom get info from thread.esp======\n");*/
+		/*tmp2 = next_p->thread.esp;*/
+		/*printk(KERN_ERR "tom %x : %x %x %x %x %x %x %x %x\n",tmp2,*tmp2,*(tmp2+1),*(tmp2+2),*(tmp2+3),*(tmp2+4),*(tmp2+5),*(tmp2+6),*(tmp2+7));*/
+		/*printk(KERN_ERR "tom %x : %x %x %x %x %x %x %x\n",tmp2+8,*(tmp2+8),*(tmp2+9),*(tmp2+10),*(tmp2+11),*(tmp2+12),*(tmp2+13),*(tmp2+14));*/
+		/*printk(KERN_ERR "=======tom get info from thread.esp======\n");*/
+
+		/*printk(KERN_ERR "=======tom get info from esp======\n");*/
+		/*unsigned long esp;*/
+		/*unsigned long *esp_p;*/
+		/*unsigned long stack_bottom;*/
+
+		/*stack_bottom = get_stack_bottom();*/
+		/*esp =  esp_info();*/
+
+		/*[> esp指向的地方,是即将压内容的地址 <]*/
+		/*esp += 4;*/
+		/*printk(KERN_ERR "tom current pid=%x\n",current->pid);*/
+
+		/*for(;esp<=stack_bottom;esp+=4,esp_p+=4) {*/
+			/*esp_p = esp;*/
+			/*printk(KERN_ERR "%x:%x\n",esp,*esp_p);*/
+		/*}*/
+		/*printk(KERN_ERR "=======tom get info from esp======\n");*/
+
+	/*}*/
+
 
 	return prev_p;
 }
